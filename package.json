@@ -10,9 +10,9 @@
     "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
-    "build": "npm run build -w @ng-email/render && npm run build -w @ng-email/components",
-    "test": "node tools/run-tests.mjs packages/render packages/components",
-    "typecheck": "ngc -p packages/render/tsconfig.spec.json --noEmit && ngc -p packages/components/tsconfig.spec.json --noEmit"
+    "build": "npm run build -w @ng-email/render && npm run build -w @ng-email/components && npm run build -w @ng-email/cli",
+    "test": "npm run build && node tools/run-tests.mjs packages/render packages/components && node --test --test-reporter=spec \"packages/cli/test/*.test.mjs\"",
+    "typecheck": "ngc -p packages/render/tsconfig.spec.json --noEmit && ngc -p packages/components/tsconfig.spec.json --noEmit && tsc -p packages/cli/tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@angular/common": "22.2.5",

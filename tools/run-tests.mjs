@@ -12,11 +12,13 @@
 // Usage: node tools/run-tests.mjs packages/render packages/components [-- node --test args]
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { readdir, readFile, rm } from 'node:fs/promises';
+import { readdir, rm } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { build } from 'esbuild';
-import { transformAsync } from '@babel/core';
-import linkerPlugin from '@angular/compiler-cli/linker/babel';
+
+// Same plugin `ng-email build` uses, so tests and real bundles link identically.
+// Requires `npm run build -w @ng-email/cli` first (the root `test` script does it).
+import { angularLinkerPlugin } from '../packages/cli/dist/linker.js';
 
 const args = process.argv.slice(2);
 const split = args.indexOf('--');
@@ -29,24 +31,6 @@ function run(cmd, cmdArgs) {
   const result = spawnSync(cmd, cmdArgs, { cwd: root, stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
-
-const angularLinker = {
-  name: 'angular-linker',
-  setup(b) {
-    b.onLoad({ filter: /node_modules[\\/]@angular[\\/].*\.m?js$/ }, async ({ path }) => {
-      const source = await readFile(path, 'utf8');
-      if (!source.includes('ɵɵngDeclare')) return { contents: source, loader: 'js' };
-      const out = await transformAsync(source, {
-        filename: path,
-        babelrc: false,
-        configFile: false,
-        compact: false,
-        plugins: [linkerPlugin],
-      });
-      return { contents: out.code, loader: 'js' };
-    });
-  },
-};
 
 if (pkgDirs.length === 0) {
   console.error('Usage: node tools/run-tests.mjs <package-dir>... [-- node --test args]');
@@ -90,7 +74,7 @@ for (const pkgDir of pkgDirs) {
       banner: {
         js: "import { createRequire as __ngeCreateRequire } from 'node:module'; const require = __ngeCreateRequire(import.meta.url);",
       },
-      plugins: [angularLinker],
+      plugins: [angularLinkerPlugin()],
       logLevel: 'warning',
     });
   }

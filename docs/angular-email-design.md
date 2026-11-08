@@ -137,7 +137,7 @@ Plain text (`renderEmailText` / `toPlainText`) uses `html-to-text` with default 
 
 **Bundling for Node workers.** Angular packages are partially compiled (spike failure 1). There are two supported deployment paths:
 1. *Angular CLI workspace*: render from the app's existing server bundle (`@angular/build:application` with an SSR entry). The CLI links Angular already.
-2. *Plain Node service*: `ng-email build src/emails/index.ts -o dist/emails.mjs` runs `ngc` plus esbuild with the Angular Linker (the spike's `link.mjs`, productized). The service then imports a self-contained ESM bundle.
+2. *Plain Node service*: `ng-email build src/emails/index.ts -o dist/emails.mjs` (package `@ng-email/cli`). It runs an in-memory full AOT compile (`performCompilation`), then esbuild with the Angular Linker. The service imports a self-contained ESM bundle that re-exports the render API, so rendering uses the bundled, linked Angular.
 A documented escape hatch is `import '@angular/compiler'` (JIT-links at runtime). It works but is heavier and slower to start. Not recommended.
 
 ## 5. Preview approach (no Next.js, no esbuild-in-vm)
@@ -207,8 +207,8 @@ Fallback when the Angular CLI dev-server route turns out to be too limiting: a s
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| **platform-server weight**: Domino + core + common; 2.2 MB linked dev bundle in the spike | cold-start time on serverless; install size | production build with `ngDevMode=false` + minify; publish measured numbers; keep heavy deps (prettier) lazy and optional; benchmark bootstrap per render vs. a reused platform |
-| **Linking requirement**: partially compiled Angular breaks bare Node (spike failure 1) | "works in CLI, breaks in my worker" | ship `ng-email build`; regression test runs the output under bare `node`; clear error message pointing to docs |
+| **platform-server weight**: Domino + core + common. Measured `ng-email build` output in production mode is 2.2 MB, or 0.97 MB with `--minify` | cold-start time on serverless; install size | production build with `ngDevMode=false` + minify; publish measured numbers; keep heavy deps (prettier) lazy and optional; benchmark bootstrap per render vs. a reused platform |
+| ~~**Linking requirement**~~: partially compiled Angular breaks bare Node (spike failure 1) | resolved | `ng-email build` ships; e2e tests render from the bundle in an empty temp directory with plain `node` |
 | **Encapsulation and component styles** silently lost | emails render unstyled | components force `None` with no `styles`; `domCleanup` throws when `<style ng-app-id>` appears; lint rule in docs |
 | **Hydration markers**: `ngh`, `ng-state`, event replay scripts if a user adds `provideClientHydration` | broken markup, scripts in email | never provide hydration; strip `ngh`; assert no `<script>`; the artifact-absence suite |
 | **Host elements**: user components leak `<app-foo>` tags | unknown tags in clients | attribute selectors in library components; unwrap hyphenated elements; snapshot suite |
@@ -234,5 +234,10 @@ Fallback when the Angular CLI dev-server route turns out to be too limiting: a s
    * `<td ngeColumn>` written directly inside `<table ngeRow>` is not re-parented by the template parser.
    * An abstract base class that declares inputs needs `@Directive()`.
    * Font's `<style>` is created with `Renderer2` in `ngOnInit`. User-supplied font names and URLs are stripped of characters that could escape the CSS.
-3. `ng-email build` (linked bundle) + bare-node regression test.
+3. ✅ `@ng-email/cli` with `ng-email build` and the programmatic `buildEmails()`. There are 13 e2e tests. They build a real consumer project, render the bundle from an empty temp directory with plain `node` in production mode (including `@for` and `CurrencyPipe` from `@angular/common`), type-check a consumer against the generated `.d.mts`, and cover `--dev`, `--minify` and `--external` plus the error paths. The test runner now uses the same `angularLinkerPlugin()`. What the implementation taught us:
+   * `@angular/compiler-cli`'s typings use extensionless relative re-exports. A consumer compiled with `moduleResolution: NodeNext` sees **no exports**. The CLI is compiled with `Bundler` resolution and explicit `.js` imports.
+   * TypeScript 6 requires an explicit `rootDir` whenever `outDir` is set (TS5011). The in-memory compile uses the filesystem root.
+   * The linker must also run outside `node_modules`: symlinked workspace packages resolve to their real path.
+   * The bundle must re-export the render API. A separately imported `@ng-email/render` would bring a second, unlinked Angular.
+   * TS 6 `tsc` refuses `files on the command line` when a tsconfig exists (TS5112) unless you pass `--ignoreConfig`.
 4. Preview schematic + SSR render route + export builder.
