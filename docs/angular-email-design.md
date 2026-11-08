@@ -21,7 +21,7 @@ Names were free on npm on 2026-11-08. The `@ng-email` scope still has to be clai
 | Package | Purpose | Peer deps |
 |---|---|---|
 | `@ng-email/render` | `renderEmail`, `toPlainText`, `cleanupEmailHtml`, types | `@angular/core`, `@angular/common`, `@angular/platform-browser`, `@angular/platform-server` (≥ 22) |
-| `@ng-email/components` | Standalone email components (secondary entry points per component, so unused ones tree-shake) | `@angular/core`, `@angular/platform-browser` |
+| `@ng-email/components` | Standalone email components. One entry point: with `sideEffects: false` and standalone components, unused ones already tree-shake. No dependency on `@ng-email/render` | `@angular/core`, `@angular/platform-browser` |
 | `@ng-email/preview` | Angular CLI builder + schematic for the preview app, and the `ng-email export` command | `@angular/build`, `@angular/ssr` |
 
 `html-to-text` (plain text) is a dependency of `@ng-email/render`. `prettier` is an *optional peer* that is loaded only when `pretty: true` is passed.
@@ -57,7 +57,7 @@ Components use **attribute selectors on the real email element**, so the compone
 <html ngeHtml lang="en">
   <head ngeHead><title>Welcome</title></head>
   <body ngeBody [ngeStyle]="{ backgroundColor: '#f6f9fc' }">
-    <div ngePreview>Your account is ready</div>
+    <nge-preview text="Your account is ready" />
     <table ngeContainer>
       <!-- Container renders tbody > tr > td itself and projects children into the td -->
       <h1 ngeHeading>Hi {{ name() }}</h1>
@@ -88,7 +88,7 @@ Each row lists the behavior that must be implemented. It comes from react-email'
 | Html | `html[ngeHtml]` | default `lang="en"`, `dir="ltr"` |
 | Head | `head[ngeHead]` | prepends `Content-Type` meta and `x-apple-disable-message-reformatting` meta |
 | Body | `body[ngeBody]` | `body` keeps only background (+ zeroed margin/padding). All user styles go on an inner full-width presentation table `td` (Yahoo/AOL) |
-| Preview | `div[ngePreview]` | hidden preheader, text capped at 200 chars, invisible-character filler up to the cap, `data-skip-in-text`. Optional `<title>` |
+| Preview | `nge-preview` (element, unwrapped) with a `text` input | hidden preheader, text capped at 200 chars, invisible-character filler up to the cap, `data-skip-in-text`. It is an element rather than `div[…]` because static inputs on an attribute host leak as attributes. There is no `<title>` option, because Angular does not hoist elements into `<head>`; put `<title>` in `head[ngeHead]` |
 | Container | `table[ngeContainer]` | presentation table, `align=center width=100% border=0 cellpadding=0 cellspacing=0`, `max-width:37.5em`. **Padding moves to the inner `td`** |
 | Section | `table[ngeSection]` | as Container without max-width |
 | Row | `table[ngeRow]` | presentation table → tbody → `tr` with projected columns |
@@ -227,6 +227,12 @@ Fallback when the Angular CLI dev-server route turns out to be too limiting: a s
    * Static host attributes are serialized before bound ones. Snapshots must pin that order.
    * The test pipeline is `ngc` (full) → esbuild + Angular Linker → `node --test` (`tools/run-tests.mjs`). It is the seed of `ng-email build` in task 3.
    * Deferred from the §2.1 API: `pretty`. It needs a printer that is proven never to re-wrap MSO conditionals.
-2. Components: Html, Head, Body, Container, Section, Row, Column, Text, Button, then the rest, each with snapshots.
+2. ✅ `@ng-email/components`: all 15 v1 components plus the style/padding utilities. 71 tests, each run in dev and prod mode: exact output for Button/Container/Section/Row/Body/Text/Heading/Link/Img/Hr/Preview, padding-math tables, and a full email with every component (no artifacts, a single document, MSO hacks intact, plain text). What the implementation taught us:
+   * **Static inputs leak as attributes.** `mx="8px"` on an attribute-selector host is also written to the DOM. Heading clears its non-HTML input names with `[attr.x]: null` host bindings. Preview and Font use element selectors, which get unwrapped.
+   * Attribute order is static host attributes, then static template attributes, then bound attributes.
+   * `imports` passed through an object spread is **not** seen by the compiler. Write `imports: [EMAIL_COMPONENTS]` directly.
+   * `<td ngeColumn>` written directly inside `<table ngeRow>` is not re-parented by the template parser.
+   * An abstract base class that declares inputs needs `@Directive()`.
+   * Font's `<style>` is created with `Renderer2` in `ngOnInit`. User-supplied font names and URLs are stripped of characters that could escape the CSS.
 3. `ng-email build` (linked bundle) + bare-node regression test.
 4. Preview schematic + SSR render route + export builder.

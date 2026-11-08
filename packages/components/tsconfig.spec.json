@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../dist-test/components",
+    "rootDir": "..",
+    "types": ["node"],
+    "paths": {
+      "@ng-email/render": ["../render/src/public-api.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "angularCompilerOptions": {
+    "compilationMode": "full"
+  }
+}
