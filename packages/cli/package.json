@@ -23,7 +23,7 @@
     "esbuild"
   ],
   "bin": {
-    "ng-email": "./dist/bin.js"
+    "ng-email": "dist/bin.js"
   },
   "exports": {
     ".": {

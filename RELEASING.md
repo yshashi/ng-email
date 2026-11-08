@@ -26,9 +26,9 @@ Every package has `publishConfig.access: public`. Scoped packages are private by
    ```bash
    npm test
    ```
-4. **Check what will be published.**
+4. **Dry-run the publish.** Use `publish --dry-run`, not `pack --dry-run`. Only publish applies npm's package.json validation, which can silently "auto-correct" fields. There must be **no** `npm warn publish … errors corrected` lines.
    ```bash
-   (cd packages/render/dist && npm pack --dry-run) && (cd packages/components/dist && npm pack --dry-run) && npm pack --dry-run -w @ng-email/cli
+   (cd packages/render/dist && npm publish --dry-run) && (cd packages/components/dist && npm publish --dry-run) && npm publish --dry-run -w @ng-email/cli
    ```
 5. **Log in.** This opens a browser.
    ```bash
@@ -62,5 +62,7 @@ Every package has `publishConfig.access: public`. Scoped packages are private by
 ## If something goes wrong
 
 * **`402 Payment Required` or `You must sign up for private packages`:** the package was published without public access. Check `publishConfig` in the *published* `package.json` (for render/components, that is `dist/package.json`).
-* **`404 Not Found - PUT .../@ng-email%2f…`:** the `ng-email` org doesn't exist, or your account isn't a member of it.
+* **`404 Not Found - PUT .../@ng-email%2f… - Scope not found`:** the `ng-email` org doesn't exist, or your account isn't a member of it. Check with `npm org ls ng-email`.
+* **`"bin[ng-email]" script name … was invalid and removed`:** npm 11 strips `bin` paths that start with `./`, and the CLI then ships without its `ng-email` command. Keep `"bin": { "ng-email": "dist/bin.js" }` with no leading `./`.
+* **`npm publish packages/cli` fails with a git error:** npm reads a bare `a/b` path as a GitHub shorthand. Use `npm publish -w @ng-email/cli`, or `./packages/cli`.
 * **A bad release:** prefer publishing a fixed patch version. `npm deprecate @ng-email/<pkg>@<version> "<reason>"` warns installers without breaking anyone. `npm unpublish` only works within 72 hours, and it blocks that version number forever.
