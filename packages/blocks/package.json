@@ -1,0 +1,15 @@
+{
+  "name": "@ng-email/blocks",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Source of the copy-paste email blocks and templates shown on the ng-email website and installed with `ng-email add`.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/generate-registry.mjs"
+  },
+  "dependencies": {
+    "@ng-email/components": "*",
+    "@ng-email/render": "*"
+  }
+}

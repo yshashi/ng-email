@@ -4,7 +4,7 @@
 // dist-test/cli/<name> (node --test runs files in parallel), with
 // @ng-email/render and @ng-email/components linked to their built dist/.
 // Run `npm run build` first; the root `test` script does.
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -20,6 +20,19 @@ export async function write(path, content) {
 export function run(args, cwd) {
   const r = spawnSync(process.execPath, [cli, ...args], { cwd, encoding: 'utf8' });
   return { code: r.status, stdout: r.stdout, stderr: r.stderr };
+}
+
+/** Like `run`, but does not block the event loop (needed when the test itself serves HTTP). */
+export function runAsync(args, cwd) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [cli, ...args], { cwd });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8').on('data', (d) => (stdout += d));
+    child.stderr.setEncoding('utf8').on('data', (d) => (stderr += d));
+    child.once('error', reject);
+    child.once('close', (code) => resolve({ code, stdout, stderr }));
+  });
 }
 
 export const WELCOME = `import { Component, input } from '@angular/core';

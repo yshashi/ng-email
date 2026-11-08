@@ -2,13 +2,21 @@
 
 Build transactional emails as standalone Angular components, and render them to HTML that email clients accept.
 
-> Status: early. All four v1 phases are implemented and tested: rendering, components, the Node build, and preview/export. Nothing is published to npm yet.
+> Status: early. 0.1.0 is on npm. A website with docs, a block gallery and templates is in progress.
+
+```bash
+npm install @ng-email/render @ng-email/components
+```
+```bash
+npm install -D @ng-email/cli
+```
 
 | Package | Status |
 |---|---|
-| [`@ng-email/render`](packages/render) | implemented: render, cleanup, plain text |
-| [`@ng-email/components`](packages/components) | implemented: Html, Head, Body, Preview, Container, Section, Row, Column, Text, Heading, Link, Button, Img, Hr, Font |
-| [`@ng-email/cli`](packages/cli) | implemented: `ng-email build` (self-contained bundle for plain Node), `ng-email preview` (live browser preview), `ng-email export` (static `.html`/`.txt`) |
+| [`@ng-email/render`](packages/render) | 0.1.0 on npm: render, cleanup, plain text, `defineEmails` |
+| [`@ng-email/components`](packages/components) | 0.1.0 on npm: Html, Head, Body, Preview, Container, Section, Row, Column, Text, Heading, Link, Button, Img, Hr, Font |
+| [`@ng-email/cli`](packages/cli) | 0.1.0 on npm: `ng-email build` (self-contained bundle for plain Node), `preview` (live browser preview), `export` (static `.html`/`.txt`). `add` (copy blocks into your project) is unreleased |
+| [`packages/blocks`](packages/blocks) | not published: source of 21 copy-paste blocks and 5 templates, plus the JSON registry behind `ng-email add` and the website |
 
 Design: [docs/angular-email-design.md](docs/angular-email-design.md). Research behind it: [docs/reverse-engineering-notes.md](docs/reverse-engineering-notes.md).
 

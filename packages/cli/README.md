@@ -1,10 +1,11 @@
 # @ng-email/cli
 
-The `ng-email` command line has three commands:
+The `ng-email` command line has four commands:
 
 * **`build`** turns your Angular email components into **one self-contained ES module** that any plain Node service can import. You don't need the Angular CLI or a runtime compiler, and the output has no `node_modules` of its own.
 * **`preview`** opens a live browser preview that rebuilds on every save.
 * **`export`** renders every email to static `.html` and `.txt` files.
+* **`add`** copies ready-made blocks and templates into your project.
 
 ```bash
 npm install -D @ng-email/cli
@@ -64,6 +65,19 @@ npx ng-email export src/emails/index.ts -o out
 ```
 
 This writes `out/<name>.html` and `out/<name>.txt` for every email, rendered with its preview inputs. Use it for CI artifacts, visual diffing, or uploading templates. It exits with code 1 if any email fails to render.
+
+## `ng-email add`
+
+```bash
+npx ng-email add header-centered order-summary welcome
+```
+
+This copies ready-made blocks and templates from the ng-email registry into `src/emails/blocks/` (change it with `-d`). You own the copied files and can edit them freely. Each file is a self-contained standalone component that depends only on `@ng-email/components`.
+
+* `npx ng-email add --list` shows everything available.
+* Existing files are never overwritten unless you pass `--overwrite`.
+* `--registry <url|folder>` (or `NG_EMAIL_REGISTRY`) points at another registry, for example your own fork.
+* After adding, it prints the import line and how to use the block (`<header-centered />` inside your email's template).
 
 ## Listing your emails
 

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { type ParseArgsConfig, parseArgs } from 'node:util';
 
+import { RegistryError, addBlocks, listRegistry } from './add.js';
 import { BuildError, buildEmails } from './build.js';
 import { exportEmails } from './export.js';
 import { startPreview } from './preview/server.js';
@@ -13,6 +14,7 @@ Commands
   build <entry>    Compile and bundle email components for plain Node
   preview <entry>  Live preview in the browser, rebuilt on every change
   export <entry>   Render every email to <name>.html and <name>.txt
+  add <name...>    Copy blocks/templates from the ng-email registry into your project
 
 build options
   -o, --outfile <file>   Output ESM bundle (default: dist/emails.mjs)
@@ -28,6 +30,12 @@ preview options
 
 export options
   -o, --outdir <dir>     Output directory (default: out)
+
+add options
+  -d, --dir <dir>        Where to write the files (default: src/emails/blocks)
+      --list             List everything in the registry
+      --overwrite        Replace files that already exist
+      --registry <url>   Registry URL or local folder (default: the ng-email website, or $NG_EMAIL_REGISTRY)
 
 Shared options
   -p, --tsconfig <file>  tsconfig to compile with (default: nearest to the entry)
@@ -65,6 +73,13 @@ const COMMAND_OPTIONS = {
     ...SHARED,
     outdir: { type: 'string', short: 'o' },
   },
+  add: {
+    help: { type: 'boolean', short: 'h' },
+    dir: { type: 'string', short: 'd' },
+    list: { type: 'boolean' },
+    overwrite: { type: 'boolean' },
+    registry: { type: 'string' },
+  },
 } satisfies Record<string, ParseArgsConfig['options']>;
 
 type Command = keyof typeof COMMAND_OPTIONS;
@@ -82,6 +97,60 @@ function fail(error: unknown): number {
     return 1;
   }
   throw error;
+}
+
+async function runAdd(values: Record<string, unknown>, names: string[]): Promise<number> {
+  const registry = values['registry'] as string | undefined;
+  try {
+    if (values['list']) {
+      const items = await listRegistry(registry);
+      for (const kind of ['block', 'template'] as const) {
+        const ofKind = items.filter((i) => i.kind === kind);
+        if (ofKind.length === 0) continue;
+        process.stdout.write(`\n${kind === 'block' ? 'Blocks' : 'Templates'}\n`);
+        for (const item of ofKind) {
+          process.stdout.write(`  ${item.name.padEnd(22)} ${item.category.padEnd(16)} ${item.title}\n`);
+        }
+      }
+      process.stdout.write(`\nAdd one with: ng-email add <name>\n`);
+      return 0;
+    }
+    if (names.length === 0) {
+      process.stderr.write('ng-email add: name at least one block (see "ng-email add --list").\n');
+      return 1;
+    }
+
+    const result = await addBlocks({
+      names,
+      registry,
+      dir: values['dir'] as string | undefined,
+      overwrite: values['overwrite'] as boolean | undefined,
+    });
+    for (const { item, files } of result.added) {
+      const file = files[0]!;
+      const importPath = `./${rel(file).replace(/\\/g, '/').replace(/\.ts$/, '')}`;
+      process.stdout.write(`✔ Added ${item.name} → ${rel(file)}\n`);
+      process.stdout.write(`    import { ${item.className} } from '${importPath}';\n`);
+      process.stdout.write(
+        item.kind === 'block'
+          ? `    use it inside an email template: <${item.selector} />\n`
+          : `    render it: renderEmail(${item.className}, { inputs: { … } })\n`,
+      );
+    }
+    for (const { name, reason } of result.skipped) process.stderr.write(`✖ ${name}: ${reason}\n`);
+    if (result.missingDependencies.length > 0) {
+      process.stderr.write(
+        `\n! Install what the added files import: npm install ${result.missingDependencies.join(' ')}\n`,
+      );
+    }
+    return result.skipped.length > 0 ? 1 : 0;
+  } catch (error) {
+    if (error instanceof RegistryError) {
+      process.stderr.write(`✖ ${error.message}\n`);
+      return 1;
+    }
+    throw error;
+  }
 }
 
 async function main(argv: string[]): Promise<number> {
@@ -117,6 +186,9 @@ async function main(argv: string[]): Promise<number> {
   if (values['help']) {
     process.stdout.write(HELP);
     return 0;
+  }
+  if (command === 'add') {
+    return runAdd(values, positionals);
   }
   if (positionals.length !== 1) {
     process.stderr.write(`ng-email ${command}: expected exactly one <entry> file.\nRun "ng-email --help".\n`);
@@ -170,6 +242,9 @@ async function main(argv: string[]): Promise<number> {
         return fail(error);
       }
     }
+
+    case 'add':
+      return runAdd(values, positionals); // handled above; keeps the switch exhaustive
 
     case 'preview': {
       const portText = (values['port'] as string | undefined) ?? '3000';

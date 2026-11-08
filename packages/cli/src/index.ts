@@ -1,3 +1,13 @@
+export {
+  DEFAULT_REGISTRY,
+  RegistryError,
+  addBlocks,
+  listRegistry,
+  type AddOptions,
+  type AddResult,
+  type RegistryIndexItem,
+  type RegistryItem,
+} from './add.js';
 export { BuildError, buildEmails, type BuildEmailsOptions, type BuildEmailsResult } from './build.js';
 export {
   type Catalog,

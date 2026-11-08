@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "@ng-email/render": ["../render/src/public-api.ts"],
+      "@ng-email/components": ["../components/src/public-api.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "angularCompilerOptions": {
+    "strictTemplates": true
+  }
+}
