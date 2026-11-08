@@ -70,6 +70,8 @@ for (const pkgDir of pkgDirs) {
       target: 'node22',
       define,
       alias,
+      keepNames: true, // as `ng-email build` does: class names stay WelcomeEmail, not _WelcomeEmail
+
       external: ['node:*'],
       banner: {
         js: "import { createRequire as __ngeCreateRequire } from 'node:module'; const require = __ngeCreateRequire(import.meta.url);",

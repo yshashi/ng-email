@@ -2,14 +2,13 @@
 
 Build transactional emails as standalone Angular components, and render them to HTML that email clients accept.
 
-> Status: early. Rendering, the v1 components and the Node build command work and are tested. The preview app is next. Nothing is published to npm yet.
+> Status: early. All four v1 phases are implemented and tested: rendering, components, the Node build, and preview/export. Nothing is published to npm yet.
 
 | Package | Status |
 |---|---|
 | [`@ng-email/render`](packages/render) | implemented: render, cleanup, plain text |
 | [`@ng-email/components`](packages/components) | implemented: Html, Head, Body, Preview, Container, Section, Row, Column, Text, Heading, Link, Button, Img, Hr, Font |
-| [`@ng-email/cli`](packages/cli) | implemented: `ng-email build`, a self-contained bundle for plain Node services |
-| `@ng-email/preview` | planned (Angular CLI dev-server based preview + export) |
+| [`@ng-email/cli`](packages/cli) | implemented: `ng-email build` (self-contained bundle for plain Node), `ng-email preview` (live browser preview), `ng-email export` (static `.html`/`.txt`) |
 
 Design: [docs/angular-email-design.md](docs/angular-email-design.md). Research behind it: [docs/reverse-engineering-notes.md](docs/reverse-engineering-notes.md).
 

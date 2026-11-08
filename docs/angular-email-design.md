@@ -22,7 +22,7 @@ Names were free on npm on 2026-11-08. The `@ng-email` scope still has to be clai
 |---|---|---|
 | `@ng-email/render` | `renderEmail`, `toPlainText`, `cleanupEmailHtml`, types | `@angular/core`, `@angular/common`, `@angular/platform-browser`, `@angular/platform-server` (≥ 22) |
 | `@ng-email/components` | Standalone email components. One entry point: with `sideEffects: false` and standalone components, unused ones already tree-shake. No dependency on `@ng-email/render` | `@angular/core`, `@angular/platform-browser` |
-| `@ng-email/preview` | Angular CLI builder + schematic for the preview app, and the `ng-email export` command | `@angular/build`, `@angular/ssr` |
+| `@ng-email/cli` | `ng-email build`, `preview` and `export` (this replaced the planned `@ng-email/preview` package; see §5) | `@angular/compiler-cli`, `typescript`, `@ng-email/render` |
 
 `html-to-text` (plain text) is a dependency of `@ng-email/render`. `prettier` is an *optional peer* that is loaded only when `pretty: true` is passed.
 
@@ -142,24 +142,34 @@ A documented escape hatch is `import '@angular/compiler'` (JIT-links at runtime)
 
 ## 5. Preview approach (no Next.js, no esbuild-in-vm)
 
-React's preview can eval a bundled file in a `vm`. Angular components cannot be loaded that way, because they need the Angular compiler and linker. We therefore **reuse the Angular CLI dev server**, which already handles AOT, linking, path aliases and HMR.
+React's preview can eval a bundled file in a `vm`. Angular components cannot be loaded that way, because they need the Angular compiler and linker.
 
-* `ng add @ng-email/preview` adds an `email-preview` application project to the user's workspace:
-  * a **client** Angular app (CSR): template list, `<iframe srcdoc>` desktop/mobile widths, HTML / plain-text / source tabs, input JSON editor.
-  * an SSR `server.ts` (`@angular/ssr/node`) with one extra route, `GET /__nge/render/:name?inputs=…`. It looks the email up in the registry and calls `renderEmail` inside the dev server's SSR runtime. `ng serve` runs `server.ts` through Vite SSR, so editing an email triggers a re-render with no custom watcher.
-* **Explicit registry instead of file scanning:**
+**Decision (Phase 4): a standalone `ng-email preview` command, built on `buildEmails`.** This was the design's fallback. It replaced the original `ng add` schematic + Angular CLI dev server plan because it:
+1. reuses the compile → link → bundle pipeline that Phase 3 already tested end to end;
+2. works in any project, Angular CLI workspace or not;
+3. can be tested end to end without scaffolding an Angular application;
+4. ships no Angular CLI builder, schematic or `@angular/ssr` dependency.
+
+How it works:
+* **Watch.** Recursive `fs.watch` on the project (ignoring `node_modules`, `dist`, `out` and `.git`), debounced. Rebuilds reuse a shared linker cache, so Angular is linked once and later rebuilds take a few hundred ms.
+* **Render.** Every successful build gets a fresh **`worker_threads` isolate** that imports the bundle. That gives a clean module graph, with no `vm` and no stale ESM cache, and the previous worker is terminated after the swap. A failed build keeps the last good worker serving and reports the diagnostic.
+* **HTTP API** on `127.0.0.1` by default:
+  * `GET /api/state`, plus an `/api/events` SSE stream;
+  * `POST /api/render/:name` with `{ inputs }` in the body (kept out of URLs);
+  * `GET /preview/:name`.
+* **UI.** One self-contained HTML page (no framework, no network requests):
+  * email list, and a sandboxed `<iframe srcdoc>` at desktop or mobile width;
+  * HTML and plain-text tabs, and a JSON inputs editor;
+  * build-error banner, live reload over SSE, light and dark themes.
+* **Registry instead of file scanning.** It is typed, needs no Babel AST detection, and can be imported by both the preview and the production sender:
   ```ts
-  // src/emails/index.ts
   export const emails = defineEmails({
-    welcome: { component: WelcomeEmail, previewInputs: { name: 'Ada' } },
-    reset:   { component: ResetEmail,   previewInputs: { url: 'https://…' } },
+    welcome: defineEmail(WelcomeEmail, { previewInputs: { name: 'Ada' } }),
   });
   ```
-  It is typed, needs no Babel AST detection, and can be imported by both the preview and the production sender.
-* `ng-email export` (a builder) renders every registry entry to `out/<name>.html` and `.txt` for CI artifacts and diffing.
-* Not in v1: sending test emails, caniemail linting, and sharing.
-
-Fallback when the Angular CLI dev-server route turns out to be too limiting: a standalone `ng-email preview` command that runs `ngc --watch` → linked esbuild bundle → render in a **child process** (fresh module cache per rebuild, no `vm`), and serves a prebuilt preview UI.
+  `defineEmail` gives each entry its own type parameter, so `previewInputs` are checked. Without a registry, exported components are listed under their export names.
+* **`ng-email export`** renders every entry to `out/<name>.html` and `.txt`.
+* Not in v1: sending test emails, caniemail linting, sharing, and a UI written in Angular.
 
 ## 6. Explicit non-goals (v1)
 
@@ -240,4 +250,15 @@ Fallback when the Angular CLI dev-server route turns out to be too limiting: a s
    * The linker must also run outside `node_modules`: symlinked workspace packages resolve to their real path.
    * The bundle must re-export the render API. A separately imported `@ng-email/render` would bring a second, unlinked Angular.
    * TS 6 `tsc` refuses `files on the command line` when a tsconfig exists (TS5112) unless you pass `--ignoreConfig`.
-4. Preview schematic + SSR render route + export builder.
+4. ✅ `ng-email preview` and `ng-email export` in `@ng-email/cli` (see §5 for why this replaced the schematic), plus `defineEmail`/`defineEmails`/`describeEmailComponent` in `@ng-email/render`.
+   * **Tests:** 17 new CLI e2e tests run the real CLI against a sample project. They cover:
+     * real HTTP, SSE and file watching;
+     * rebuild on save, and a broken build that keeps serving the last good one;
+     * a first build that fails and then recovers;
+     * request errors and a clean SIGTERM exit;
+     * export with and without a registry.
+   * The UI was also checked by hand in a browser: dark and light themes, desktop and mobile widths, input edits, invalid JSON, and the error banner.
+   * What the implementation taught us:
+     * esbuild renames classes while lowering static fields (`WelcomeEmail` → `_WelcomeEmail`), which broke names in the preview and in errors. `ng-email build` now sets `keepNames`.
+     * Re-showing a hidden `<iframe>` with the same `srcdoc` can leave it blank, so the UI mounts a fresh iframe for every render.
+     * "Keep serving the last good build" needs a separate message for a *first* build that fails, when there is no last good build.

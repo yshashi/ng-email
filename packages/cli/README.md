@@ -1,6 +1,10 @@
 # @ng-email/cli
 
-`ng-email build` turns your Angular email components into **one self-contained ES module** that any plain Node service can import. You don't need the Angular CLI or a runtime compiler, and the output has no `node_modules` of its own.
+The `ng-email` command line has three commands:
+
+* **`build`** turns your Angular email components into **one self-contained ES module** that any plain Node service can import. You don't need the Angular CLI or a runtime compiler, and the output has no `node_modules` of its own.
+* **`preview`** opens a live browser preview that rebuilds on every save.
+* **`export`** renders every email to static `.html` and `.txt` files.
 
 ```bash
 npm install -D @ng-email/cli
@@ -39,15 +43,60 @@ It also writes `emails.d.mts`, which points back at your sources, so `inputs` st
 | `--external <pkg>` | none | leave a dependency as a runtime import (repeatable). Angular and `@ng-email/*` cannot be external |
 | `--no-dts` | | skip the type declarations |
 
+## `ng-email preview`
+
+```bash
+npx ng-email preview src/emails/index.ts
+```
+
+This opens a local preview at `http://127.0.0.1:3000/`. It lists every email, renders it in a sandboxed frame at desktop or mobile width, and shows the HTML source and the plain-text part. You can also edit the inputs as JSON and re-render with ⌘/Ctrl+Enter.
+
+* **Live reload.** Saving a `.ts`, `.html`, `.css` or `.json` file rebuilds and refreshes the page. Rebuilds after the first take a few hundred ms, because Angular is linked only once and cached.
+* **Errors stay readable.** A failed build shows the Angular diagnostic in the page and the terminal, and the last good build stays visible.
+* **Isolated rendering.** Each build is rendered in a fresh worker thread, so module caches never go stale. There is no `vm`, Next.js or Angular CLI dev server involved.
+* Use `/preview/<name>` to open an email as a plain page.
+* Options: `--port` (`0` picks a free port), `--host` (default `127.0.0.1`), `--no-dev` (production mode), `-p <tsconfig>`.
+
+## `ng-email export`
+
+```bash
+npx ng-email export src/emails/index.ts -o out
+```
+
+This writes `out/<name>.html` and `out/<name>.txt` for every email, rendered with its preview inputs. Use it for CI artifacts, visual diffing, or uploading templates. It exits with code 1 if any email fails to render.
+
+## Listing your emails
+
+`preview` and `export` read an exported `emails` registry from the entry:
+
+```ts
+// src/emails/index.ts
+import { defineEmail, defineEmails } from '@ng-email/render';
+import { WelcomeEmail } from './welcome.email';
+import { ReceiptEmail } from './receipt.email';
+
+export { WelcomeEmail, ReceiptEmail };
+
+export const emails = defineEmails({
+  welcome: defineEmail(WelcomeEmail, { previewInputs: { name: 'Ada' }, description: 'Sent after sign-up' }),
+  receipt: defineEmail(ReceiptEmail, { previewInputs: { lines: [{ name: 'Mug', price: 12.5 }] } }),
+});
+```
+
+`previewInputs` are type-checked against each component's inputs. Without a registry, every exported component is listed under its export name and rendered with no inputs.
+
 ## Programmatic API
 
 ```ts
-import { buildEmails, angularLinkerPlugin } from '@ng-email/cli';
+import { buildEmails, exportEmails, startPreview, angularLinkerPlugin } from '@ng-email/cli';
 
 const result = await buildEmails({ entry: 'src/emails/index.ts', outfile: 'dist/emails.mjs', minify: true });
+const preview = await startPreview({ entry: 'src/emails/index.ts', port: 0 });
+console.log(preview.url);
+await preview.close();
 ```
 
-`angularLinkerPlugin()` is the esbuild plugin used internally, for your own esbuild setups.
+`angularLinkerPlugin({ cache })` is the esbuild plugin used internally, for your own esbuild setups. Pass `createLinkerCache()` to reuse linking work across builds.
 
 ## Size
 

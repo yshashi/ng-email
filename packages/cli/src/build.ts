@@ -13,7 +13,7 @@ import {
 import { type BuildFailure, type Message, type Plugin, build as esbuild } from 'esbuild';
 import ts from 'typescript';
 
-import { angularLinkerPlugin } from './linker.js';
+import { type LinkerCache, angularLinkerPlugin } from './linker.js';
 
 export interface BuildEmailsOptions {
   /** TypeScript entry that exports your email components (e.g. `src/emails/index.ts`). */
@@ -33,6 +33,8 @@ export interface BuildEmailsOptions {
   external?: readonly string[];
   /** Write a `.d.mts` / `.d.ts` next to the bundle. Default true. */
   dts?: boolean;
+  /** Share between repeated builds (watch mode) so Angular is linked only once. */
+  linkerCache?: LinkerCache;
 }
 
 export interface BuildEmailsResult {
@@ -63,6 +65,10 @@ const RENDER_EXPORTS = [
   'toPlainText',
   'EmailRenderError',
   'XHTML_TRANSITIONAL_DOCTYPE',
+  'defineEmail',
+  'defineEmails',
+  'describeEmailComponent',
+  'isEmailComponent',
 ] as const;
 
 const NEVER_EXTERNAL = /^@angular\/|^@ng-email\//;
@@ -123,6 +129,9 @@ export async function buildEmails(options: BuildEmailsOptions): Promise<BuildEma
       format: 'esm',
       target: 'node22',
       minify: options.minify ?? false,
+      // Keep class names (WelcomeEmail, not _WelcomeEmail): the preview lists
+      // them and render errors quote them.
+      keepNames: true,
       sourcemap: options.sourcemap ?? false,
       legalComments: 'none',
       external: [...(options.external ?? [])],
@@ -132,7 +141,11 @@ export async function buildEmails(options: BuildEmailsOptions): Promise<BuildEma
       banner: {
         js: "import { createRequire as __ngEmailCreateRequire } from 'node:module';\nconst require = __ngEmailCreateRequire(import.meta.url);",
       },
-      plugins: [virtualEntryPlugin(entry), compiledSourcesPlugin(compiled), angularLinkerPlugin()],
+      plugins: [
+        virtualEntryPlugin(entry),
+        compiledSourcesPlugin(compiled),
+        angularLinkerPlugin({ cache: options.linkerCache }),
+      ],
       logLevel: 'silent',
     });
   } catch (error) {

@@ -1,34 +1,23 @@
 // End-to-end tests for `ng-email build`.
 //
-// A throwaway consumer project is created under dist-test/cli/project, with
-// @ng-email/render and @ng-email/components linked to their built dist/ (run
-// `npm run build` first; the root `test` script does). The bundle produced
-// for it is then copied into an empty temp directory outside the repo and
-// imported from plain `node`: no node_modules, no Angular CLI, no runtime
-// compiler. That is the regression test for spike failure 1.
+// The bundle built for a sample project is copied into an empty temp
+// directory outside the repo and imported from plain `node`: no node_modules,
+// no Angular CLI, no runtime compiler. That is the regression test for spike
+// failure 1.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { copyFile, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
-const repo = resolve(import.meta.dirname, '../../..');
-const cli = join(repo, 'packages/cli/dist/bin.js');
-const project = join(repo, 'dist-test/cli/project');
+import { INDEX_EXPORTS, RECEIPT, WELCOME, createProject, repo, run as runIn, write } from './helpers.mjs';
+
+let project;
+const run = (args) => runIn(args, project);
 const temps = [];
-
-async function write(path, content) {
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, content);
-}
-
-function run(args, cwd = project) {
-  const r = spawnSync(process.execPath, [cli, ...args], { cwd, encoding: 'utf8' });
-  return { code: r.status, stdout: r.stdout, stderr: r.stderr };
-}
 
 /** Copies a bundle into an empty temp dir and renders from it in a fresh `node` process. */
 async function renderIsolated(bundle, script) {
@@ -41,90 +30,12 @@ async function renderIsolated(bundle, script) {
   return { code: r.status, stdout: r.stdout, stderr: r.stderr, dir };
 }
 
-const WELCOME = `import { Component, input } from '@angular/core';
-import { EMAIL_COMPONENTS } from '@ng-email/components';
-
-@Component({
-  selector: 'welcome-email',
-  imports: [EMAIL_COMPONENTS],
-  template: \`
-    <html ngeHtml>
-      <head ngeHead><title>Welcome</title></head>
-      <body ngeBody>
-        <nge-preview [text]="'Hi ' + name()" />
-        <table ngeContainer>
-          <h1 ngeHeading>Welcome, {{ name() }}</h1>
-          <a ngeButton href="https://example.com/go" [ngeStyle]="{ padding: '12px 20px' }">Go</a>
-        </table>
-      </body>
-    </html>\`,
-})
-export class WelcomeEmail {
-  readonly name = input.required<string>();
-}
-`;
-
-const RECEIPT = `import { CurrencyPipe } from '@angular/common';
-import { Component, input } from '@angular/core';
-import { EMAIL_COMPONENTS } from '@ng-email/components';
-
-export interface Line { name: string; price: number }
-
-@Component({
-  selector: 'receipt-email',
-  imports: [EMAIL_COMPONENTS, CurrencyPipe],
-  template: \`
-    <table ngeSection>
-      @for (line of lines(); track line.name) {
-        <p ngeText>{{ line.name }}: {{ line.price | currency: 'USD' }}</p>
-      }
-      <p ngeText>Total {{ total() | currency: 'USD' }}</p>
-    </table>\`,
-})
-export class ReceiptEmail {
-  readonly lines = input<Line[]>([]);
-  total() {
-    return this.lines().reduce((sum, l) => sum + l.price, 0);
-  }
-}
-`;
-
 before(async () => {
-  for (const pkg of ['render', 'components']) {
-    if (!existsSync(join(repo, `packages/${pkg}/dist/package.json`))) {
-      throw new Error(`packages/${pkg}/dist is missing: run "npm run build" first.`);
-    }
-  }
-  await rm(project, { recursive: true, force: true });
-  await write(
-    join(project, 'tsconfig.json'),
-    JSON.stringify(
-      {
-        compilerOptions: {
-          target: 'ES2022',
-          module: 'ES2022',
-          moduleResolution: 'bundler',
-          lib: ['ES2022', 'DOM'],
-          strict: true,
-          skipLibCheck: true,
-          noEmit: true,
-        },
-        angularCompilerOptions: { strictTemplates: true },
-      },
-      null,
-      2,
-    ),
-  );
-  await mkdir(join(project, 'node_modules/@ng-email'), { recursive: true });
-  for (const pkg of ['render', 'components']) {
-    await symlink(join(repo, `packages/${pkg}/dist`), join(project, `node_modules/@ng-email/${pkg}`), 'dir');
-  }
-  await write(join(project, 'src/emails/welcome.email.ts'), WELCOME);
-  await write(join(project, 'src/emails/receipt.email.ts'), RECEIPT);
-  await write(
-    join(project, 'src/emails/index.ts'),
-    "export { WelcomeEmail } from './welcome.email';\nexport { ReceiptEmail, type Line } from './receipt.email';\n",
-  );
+  project = await createProject('build', {
+    'src/emails/welcome.email.ts': WELCOME,
+    'src/emails/receipt.email.ts': RECEIPT,
+    'src/emails/index.ts': INDEX_EXPORTS,
+  });
 });
 
 after(async () => {
@@ -172,19 +83,19 @@ describe('ng-email build (production)', () => {
     assert.match(text, /Total \$42\.50/);
   });
 
-  test('render errors keep their type through the bundle', async () => {
+  test('render errors keep their type and the real class name through the bundle', async () => {
     const r = await renderIsolated(
       join(project, 'dist/emails.mjs'),
       `try { await m.renderEmail(m.WelcomeEmail, { inputs: { nope: 1 } }); }
-       catch (e) { console.log(e instanceof m.EmailRenderError, e.code); }`,
+       catch (e) { console.log(e instanceof m.EmailRenderError, e.code, m.WelcomeEmail.name); }`,
     );
-    assert.equal(r.stdout.trim(), 'true UNKNOWN_INPUT');
+    assert.equal(r.stdout.trim(), 'true UNKNOWN_INPUT WelcomeEmail');
   });
 
   test('type declarations point at the email sources and the render API', async () => {
     const dts = await readFile(join(project, 'dist/emails.d.mts'), 'utf8');
     assert.match(dts, /export \* from '\.\.\/src\/emails\/index\.js';/);
-    assert.match(dts, /export \{ renderEmail, renderEmailText, renderEmailBoth, toPlainText, EmailRenderError, XHTML_TRANSITIONAL_DOCTYPE \} from '@ng-email\/render';/);
+    assert.match(dts, /export \{ renderEmail, renderEmailText, renderEmailBoth, toPlainText, EmailRenderError, XHTML_TRANSITIONAL_DOCTYPE, defineEmail, defineEmails, describeEmailComponent, isEmailComponent \} from '@ng-email\/render';/);
   });
 
   test('consumers get type-checked inputs from the declarations', async () => {

@@ -43,4 +43,6 @@ Angular's npm packages ship partially compiled, so plain `node` cannot run them 
 | `renderEmailBoth(component, { … })` | `{ html, text }` from one render |
 | `toPlainText(html, options)` / `plainTextSelectors` | html-to-text with email defaults |
 | `cleanupEmailHtml(html)` | string-level cleanup for HTML from elsewhere |
+| `defineEmails({ name: defineEmail(Component, { previewInputs, description }) })` | typed registry read by `ng-email preview` and `ng-email export`. Names must be URL- and file-safe |
+| `describeEmailComponent(component)` / `isEmailComponent(value)` | selector and inputs of an email component / component check |
 | `EmailRenderError` (`code`) | `NOT_A_COMPONENT`, `UNKNOWN_INPUT`, `COMPONENT_STYLES`, `SCRIPT_IN_OUTPUT`, `NO_OUTPUT` |
