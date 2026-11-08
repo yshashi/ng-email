@@ -1,6 +1,6 @@
 # @ng-email/components
 
-Standalone Angular components for HTML email. Each component renders the markup and email-client workarounds that Outlook, Gmail, Yahoo and Apple Mail need. Render emails built from them with [`@ng-email/render`](../render).
+Standalone Angular components for HTML email. Each component renders the markup and email-client workarounds that Outlook, Gmail, Yahoo and Apple Mail need. Render emails built from them with [`@ng-email/render`](https://www.npmjs.com/package/@ng-email/render).
 
 ```ts
 import { Component, input } from '@angular/core';

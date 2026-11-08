@@ -31,8 +31,9 @@ const { html: body, text } = await renderEmailBoth(WelcomeEmail, { inputs: { nam
 
 Angular's npm packages ship partially compiled, so plain `node` cannot run them as published. Do one of the following:
 
-* render from a server bundle built by the Angular CLI (`@angular/build:application` with SSR), or
-* bundle your entry point with the Angular Linker (`@angular/compiler-cli/linker/babel`). See [`tools/run-tests.mjs`](../../tools/run-tests.mjs) for a working esbuild setup.
+* **Use [`@ng-email/cli`](https://www.npmjs.com/package/@ng-email/cli) (recommended).** `npx ng-email build src/emails/index.ts` produces one self-contained bundle that any Node service can import. It re-exports `renderEmail`, so import the render functions from the bundle, not from this package. `npx ng-email preview` gives you a live browser preview.
+* Render from a server bundle built by the Angular CLI (`@angular/build:application` with SSR).
+* Bundle it yourself with the Angular Linker (`@angular/compiler-cli/linker/babel`). `angularLinkerPlugin()` from `@ng-email/cli` is a ready-made esbuild plugin for this.
 
 ## API
 

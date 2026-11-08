@@ -1,10 +1,27 @@
 {
   "name": "@ng-email/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "ng-email command line: build Angular email components into a self-contained bundle that plain Node can import.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yshashi/ng-email.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/yshashi/ng-email/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/yshashi/ng-email/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
-  "keywords": ["angular", "email", "cli", "esbuild"],
+  "keywords": [
+    "angular",
+    "email",
+    "cli",
+    "esbuild"
+  ],
   "bin": {
     "ng-email": "./dist/bin.js"
   },
@@ -15,12 +32,18 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "preview-ui", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "preview-ui",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && chmod +x dist/bin.js && cp ../../LICENSE ."
+    "build": "rm -rf dist && tsc -p tsconfig.json && chmod +x dist/bin.js && cp ../../LICENSE .",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@babel/core": "^8.0.1",
@@ -28,7 +51,7 @@
   },
   "peerDependencies": {
     "@angular/compiler-cli": "^22.0.0",
-    "@ng-email/render": "*",
+    "@ng-email/render": "^0.1.0",
     "typescript": ">=6.0 <6.1"
   }
 }

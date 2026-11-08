@@ -1,13 +1,31 @@
 {
   "name": "@ng-email/components",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Standalone Angular components for HTML email, with the Outlook, Gmail, Yahoo and Apple Mail workarounds built in.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yshashi/ng-email.git",
+    "directory": "packages/components"
+  },
+  "homepage": "https://github.com/yshashi/ng-email/tree/main/packages/components#readme",
+  "bugs": {
+    "url": "https://github.com/yshashi/ng-email/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": false,
-  "keywords": ["angular", "email", "html-email", "components"],
+  "keywords": [
+    "angular",
+    "email",
+    "html-email",
+    "components"
+  ],
   "scripts": {
-    "build": "ng-packagr -p ng-package.json -c tsconfig.lib.json && cp ../../LICENSE README.md dist/"
+    "build": "ng-packagr -p ng-package.json -c tsconfig.lib.json && cp ../../LICENSE README.md dist/",
+    "prepublishOnly": "node -e \"console.error('Publish the built package instead: npm publish packages/components/dist'); process.exit(1)\""
   },
   "peerDependencies": {
     "@angular/core": "^22.0.0",
