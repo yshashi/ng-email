@@ -1,0 +1,25 @@
+{
+  "name": "ng-email-render-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "ngc -p tsconfig.json && node link.mjs",
+    "test": "npm run build && node --test dist/spike.linked.mjs",
+    "test:unlinked": "ngc -p tsconfig.json && node --test dist/spike.test.js"
+  },
+  "dependencies": {
+    "@angular/common": "22.2.5",
+    "@angular/compiler": "22.2.5",
+    "@angular/core": "22.2.5",
+    "@angular/platform-browser": "22.2.5",
+    "@angular/platform-server": "22.2.5",
+    "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@angular/compiler-cli": "^22.2.5",
+    "@babel/core": "^8.1.0",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^6.0.3"
+  }
+}

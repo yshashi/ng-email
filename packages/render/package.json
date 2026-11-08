@@ -1,0 +1,22 @@
+{
+  "name": "@ng-email/render",
+  "version": "0.0.0",
+  "description": "Render standalone Angular components to email-client-safe HTML and plain text on the server.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "keywords": ["angular", "email", "html-email", "ssr"],
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json -c tsconfig.lib.json && cp ../../LICENSE README.md dist/"
+  },
+  "peerDependencies": {
+    "@angular/common": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/platform-server": "^22.0.0"
+  },
+  "dependencies": {
+    "html-to-text": "^10.0.1",
+    "tslib": "^2.3.0"
+  }
+}

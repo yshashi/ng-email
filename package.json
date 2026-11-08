@@ -1,0 +1,33 @@
+{
+  "name": "ng-email-monorepo",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "node tools/run-tests.mjs packages/render",
+    "typecheck": "ngc -p packages/render/tsconfig.spec.json --noEmit"
+  },
+  "devDependencies": {
+    "@angular/common": "22.2.5",
+    "@angular/compiler": "22.2.5",
+    "@angular/compiler-cli": "22.2.5",
+    "@angular/core": "22.2.5",
+    "@angular/platform-browser": "22.2.5",
+    "@angular/platform-server": "22.2.5",
+    "@babel/core": "8.1.0",
+    "@types/html-to-text": "9.0.4",
+    "@types/node": "24.10.1",
+    "esbuild": "0.28.2",
+    "ng-packagr": "22.2.6",
+    "rxjs": "7.8.2",
+    "tslib": "2.8.1",
+    "typescript": "~6.0.3"
+  }
+}
