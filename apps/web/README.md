@@ -1,6 +1,6 @@
 # ng-email website (`apps/web`)
 
-The ng-email site: home page, the block gallery and the templates gallery. It's an Angular 22 app, **fully prerendered** to static HTML (`outputMode: "static"`), so it can be hosted on GitHub Pages without a server. It is built with ng-email itself.
+The ng-email site: home page, the block gallery, the templates gallery and the documentation. It's an Angular 22 app, **fully prerendered** to static HTML (`outputMode: "static"`), so it can be hosted on GitHub Pages without a server. It is built with ng-email itself.
 
 ## Pages
 
@@ -11,6 +11,7 @@ The ng-email site: home page, the block gallery and the templates gallery. It's 
 | `/components/:category` | Every block in a category, with preview (desktop/mobile, X-ray), Angular source, HTML output, plain text, copy buttons and its `ng-email add` command |
 | `/templates` | Live, scaled-down thumbnails of every template |
 | `/templates/:name` | One template in the full viewer |
+| `/docs/:slug` | Documentation: Getting started, Guides, Reference (`/docs` redirects to the introduction) |
 
 Every URL is prerendered. Unknown URLs fall back to `index.csr.html`, which renders the not-found page. On GitHub Pages that file becomes `404.html`.
 
@@ -23,6 +24,15 @@ Every URL is prerendered. Unknown URLs fall back to `index.csr.html`, which rend
    * `catalog.ts`: names, categories, and lazy loaders for each item;
    * `items/*.json`: source, preview HTML and plain text, plus code highlighted at build time with Shiki in light and dark themes. Each item is its own small lazy chunk.
 3. It copies the raw registry to `public/r/`, so the deployed site *is* the registry `ng-email add` downloads from. It copies images to `public/static/`.
+
+`scripts/sync-docs.mjs` turns the Markdown in `content/docs/` into doc pages. `content/docs/_nav.json` sets the sections and their order. Each page's title is its `# ` heading, and its description is its first paragraph. The script:
+
+* highlights code blocks with Shiki and adds a copy button to each;
+* gives headings ids and builds the "On this page" list;
+* rewrites site links like `/docs/rendering` to be relative to the base path;
+* **fails the build if a link points at a missing page or `#section`.**
+
+To add a page, write `content/docs/<slug>.md` and list the slug in `_nav.json`.
 
 Preview HTML references images as `static/…`, relative to `<base href>`. That way images work locally (`/`) and on GitHub Pages (`/ng-email/`). The "Copy HTML" button copies the exact `ng-email` output, with public image URLs.
 

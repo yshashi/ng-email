@@ -1,5 +1,6 @@
 import type { Routes } from "@angular/router";
 
+import { docResolver, docTitle } from "./docs";
 import {
   allTemplatesResolver,
   catalog,
@@ -44,6 +45,13 @@ export const routes: Routes = [
       `${catalog.find((e) => e.name === route.paramMap.get("name"))?.title ?? "Template"} template · ng-email`,
     loadComponent: () =>
       import("./pages/template-detail").then((m) => m.TemplateDetailPage),
+  },
+  { path: "docs", pathMatch: "full", redirectTo: "docs/introduction" },
+  {
+    path: "docs/:slug",
+    resolve: { page: docResolver },
+    title: (route) => `${docTitle(route.paramMap.get("slug"))} · ng-email docs`,
+    loadComponent: () => import("./pages/doc").then((m) => m.DocPageComponent),
   },
   {
     path: "**",

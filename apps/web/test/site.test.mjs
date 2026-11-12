@@ -15,6 +15,7 @@ const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g
 const blockCategories = [...new Set(blocks.map((b) => slug(b.category)))];
 
 const page = (route) => readFile(join(out, route, 'index.html'), 'utf8');
+// docs/index.html is the /docs redirect page.
 
 describe('prerendered pages', () => {
   const routes = [
@@ -82,7 +83,52 @@ describe('published registry', () => {
     const files = (await readdir(out, { recursive: true })).filter((f) => f.endsWith('.html'));
     for (const file of files) {
       const html = await readFile(join(out, file), 'utf8');
-      assert.doesNotMatch(html, /127\.0\.0\.1|\/Users\/|file:\/\//, file);
+      assert.doesNotMatch(html, /\/Users\/|file:\/\//, file);
+      // The docs legitimately mention the local preview address; nothing else may.
+      if (!file.startsWith('docs')) assert.doesNotMatch(html, /127\.0\.0\.1/, file);
     }
+  });
+});
+
+describe('docs', async () => {
+  const nav = JSON.parse(await readFile(join(web, 'content/docs/_nav.json'), 'utf8'));
+  const docSlugs = nav.flatMap((s) => s.pages);
+
+  test(`all ${docSlugs.length} docs pages are prerendered with a title`, async () => {
+    for (const s of docSlugs) {
+      const html = await page(`docs/${s}`);
+      assert.match(html, /<title>[^<]+ · ng-email docs<\/title>/, s);
+      assert.match(html, /<div class="doc-body"/, s);
+    }
+  });
+
+  test('/docs redirects to the introduction under the base path', async () => {
+    assert.match(await page('docs'), /<meta http-equiv="refresh" content="0; url=\/ng-email\/docs\/introduction">/);
+  });
+
+  test('the header links to the docs', async () => {
+    assert.match(await page(''), /href="\/ng-email\/docs"[^>]*>Docs</);
+  });
+
+  test('every link inside the docs resolves to a prerendered page and section', async () => {
+    let checked = 0;
+    for (const s of docSlugs) {
+      const html = await page(`docs/${s}`);
+      const body = html.slice(html.indexOf('class="doc-body"'));
+      for (const [, path, fragment] of body.matchAll(/<a href="((?:docs|components|templates)[a-z0-9/-]*)(?:#([a-z0-9-]+))?"/g)) {
+        assert.ok(existsSync(join(out, path, 'index.html')), `/docs/${s} links to missing /${path}`);
+        if (fragment) {
+          assert.match(await page(path), new RegExp(`id="${fragment}"`), `/docs/${s} links to missing /${path}#${fragment}`);
+        }
+        checked++;
+      }
+    }
+    assert.ok(checked >= 15, `only ${checked} links checked; did the link format change?`);
+  });
+
+  test('code blocks are highlighted and copyable; heading anchors stay out of the heading name', async () => {
+    const html = await page('docs/sending');
+    assert.match(html, /<div class="doc-code"><button type="button" class="doc-copy" data-copy(="")?>Copy<\/button><pre class="shiki/);
+    assert.match(html, /<a class="doc-anchor" href="docs\/sending#nodemailer-smtp" aria-hidden="true" tabindex="-1">#<\/a>/);
   });
 });

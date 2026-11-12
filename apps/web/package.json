@@ -5,7 +5,7 @@
   "description": "The ng-email website: docs, block gallery and templates. Prerendered Angular app.",
   "type": "module",
   "scripts": {
-    "sync": "node scripts/sync-registry.mjs",
+    "sync": "node scripts/sync-registry.mjs && node scripts/sync-docs.mjs",
     "start": "npm run sync && ng serve",
     "build": "npm run sync && ng build",
     "build:pages": "npm run sync && ng build --base-href /ng-email/"
@@ -28,6 +28,7 @@
     "@angular/cli": "22.2.6",
     "@angular/compiler": "22.2.5",
     "@angular/compiler-cli": "22.2.5",
+    "marked": "18.2.0",
     "prettier": "3.6.2",
     "shiki": "4.6.0",
     "typescript": "~6.0.3"

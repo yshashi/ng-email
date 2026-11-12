@@ -1,0 +1,5 @@
+[
+  { "title": "Getting started", "pages": ["introduction", "installation", "first-email"] },
+  { "title": "Guides", "pages": ["rendering", "preview-and-export", "sending", "blocks", "styling"] },
+  { "title": "Reference", "pages": ["components", "cli", "api"] }
+]

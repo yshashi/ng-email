@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ViewportScroller } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 const REPO = 'https://github.com/yshashi/ng-email';
@@ -22,7 +23,7 @@ const REPO = 'https://github.com/yshashi/ng-email';
         <ul class="nav">
           <li><a routerLink="/components" routerLinkActive="is-active">Components</a></li>
           <li><a routerLink="/templates" routerLinkActive="is-active">Templates</a></li>
-          <li><a [href]="repo + '#readme'" target="_blank" rel="noopener">Docs</a></li>
+          <li><a routerLink="/docs" routerLinkActive="is-active">Docs</a></li>
           <li>
             <a [href]="repo" target="_blank" rel="noopener" class="nav__gh">
               <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -176,10 +177,10 @@ const REPO = 'https://github.com/yshashi/ng-email';
         gap: 0;
       }
       .nav a {
-        padding: 7px 7px;
+        padding: 7px 6px;
+        font-size: 13.5px;
       }
-      /* Phones: Docs lives in the footer link to GitHub; GitHub shows as its icon. */
-      .nav li:nth-child(3),
+      /* Phones: GitHub shows as its icon. */
       .nav__gh-label {
         display: none;
       }
@@ -188,8 +189,19 @@ const REPO = 'https://github.com/yshashi/ng-email';
         height: 18px;
       }
     }
+    @media (max-width: 440px) {
+      /* Narrow phones: GitHub stays reachable from the footer. */
+      .nav li:last-child {
+        display: none;
+      }
+    }
   `,
 })
 export class App {
   protected readonly repo = REPO;
+
+  constructor() {
+    // Router anchor scrolling ignores CSS scroll-margin: keep headings clear of the sticky header.
+    inject(ViewportScroller).setOffset([0, 84]);
+  }
 }

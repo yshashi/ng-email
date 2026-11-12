@@ -2,7 +2,7 @@
 
 Build transactional emails as standalone Angular components, and render them to HTML that email clients accept.
 
-> Status: early. 0.1.0 is on npm. The website (block gallery and templates) is built and not yet deployed. Docs pages and deployment are next.
+> Status: early. 0.1.0 is on npm. The website (docs, block gallery and templates) is built and not yet deployed; publishing it to GitHub Pages is next.
 
 ```bash
 npm install @ng-email/render @ng-email/components
@@ -17,7 +17,7 @@ npm install -D @ng-email/cli
 | [`@ng-email/components`](packages/components) | 0.1.0 on npm: Html, Head, Body, Preview, Container, Section, Row, Column, Text, Heading, Link, Button, Img, Hr, Font |
 | [`@ng-email/cli`](packages/cli) | 0.1.0 on npm: `ng-email build` (self-contained bundle for plain Node), `preview` (live browser preview), `export` (static `.html`/`.txt`). `add` (copy blocks into your project) is unreleased |
 | [`packages/blocks`](packages/blocks) | not published: source of 21 copy-paste blocks and 5 templates, plus the JSON registry behind `ng-email add` and the website |
-| [`apps/web`](apps/web) | the website: a prerendered Angular app with the home page, block gallery and templates gallery, for GitHub Pages |
+| [`apps/web`](apps/web) | the website: a prerendered Angular app with the docs, block gallery and templates gallery, for GitHub Pages |
 
 Design: [docs/angular-email-design.md](docs/angular-email-design.md). Research behind it: [docs/reverse-engineering-notes.md](docs/reverse-engineering-notes.md).
 
