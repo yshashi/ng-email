@@ -82,6 +82,31 @@ npx ng-email add header-centered welcome
 | `--overwrite` | off | Replace existing files |
 | `--registry <url\|folder>` | the ng-email website | Also settable with `NG_EMAIL_REGISTRY` |
 
+## ng-email check
+
+```bash
+npx ng-email check src/emails/index.ts
+```
+
+Renders every email with its preview inputs and reports inbox problems: HTML over Gmail's 102 kB clipping limit, images without `alt`, relative links, flexbox and more. See the [full list](/docs/ai-agents#check-emails). Exits with 1 when an email has an error, so it can run in CI. Available from 0.3.0.
+
+| Option | Default | |
+|---|---|---|
+| `--name <email>` | all | Check one email (repeatable) |
+| `-p, --tsconfig <file>` | nearest | |
+
+## ng-email mcp
+
+```bash
+npx -y @ng-email/cli mcp
+```
+
+Runs the MCP server for AI agents on stdio. See [AI and agents](/docs/ai-agents#mcp-server) for how to connect it. Available from 0.3.0.
+
+| Option | Default | |
+|---|---|---|
+| `--registry <url\|folder>` | the ng-email website | Registry for the block tools |
+
 ## Programmatic API
 
 Everything the CLI does is available from `@ng-email/cli`:
@@ -107,4 +132,7 @@ await preview.close();
 | `startPreview(options)` | `ng-email preview`; returns `{ url, state(), rebuild(), close() }` |
 | `addBlocks(options)`, `listRegistry(registry?)` | `ng-email add`; throws `RegistryError` |
 | `loadCatalog(bundleUrl)` | Lists and renders the emails in a built bundle |
+| `renderEntry(options)` | Builds an entry in memory, then renders and checks its emails |
+| `checkEmailHtml(html, text?)` | The `ng-email check` rules, on any HTML |
+| `createMcpServer(options?)`, `runMcpServer(options?)` | The MCP server, to embed or run |
 | `angularLinkerPlugin({ cache? })`, `createLinkerCache()` | The esbuild plugin that links Angular, for your own builds |

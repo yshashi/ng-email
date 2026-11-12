@@ -3,6 +3,10 @@
 //
 //   src/generated/docs/<slug>.json  { slug, title, description, html, toc }
 //   src/generated/docs.ts           navigation (sections → pages) and lazy loaders
+//   src/generated/public/           served as-is, for AI agents (llmstxt.org):
+//     llms.txt                      index of the docs, blocks and templates
+//     llms-full.txt                 every docs page in one file
+//     docs/<slug>.md                each page as Markdown
 //
 // content/docs/_nav.json lists the sections and page slugs in order. Each
 // page's title is its first "# " heading; its description is the first
@@ -10,6 +14,7 @@
 // copy button. Links written as /docs/... become relative to <base href>, so
 // they work both locally and under GitHub Pages' /ng-email/ path.
 import { readFile, mkdir, rm, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { Marked } from 'marked';
@@ -18,6 +23,9 @@ import { createHighlighter } from 'shiki';
 const web = resolve(import.meta.dirname, '..');
 const contentDir = join(web, 'content/docs');
 const outDir = join(web, 'src/generated/docs');
+const publicDir = join(web, 'src/generated/public');
+/** Where the site is published; Markdown for agents uses absolute links. */
+const SITE = 'https://yshashi.github.io/ng-email';
 
 const LANGS = { ts: 'typescript', typescript: 'typescript', 'angular-ts': 'angular-ts', html: 'html', bash: 'bash', sh: 'bash', json: 'json', jsonc: 'jsonc', text: 'text' };
 
@@ -91,11 +99,14 @@ await mkdir(outDir, { recursive: true });
 const sections = [];
 const slugs = [];
 const rendered = new Map();
+const markdownPages = new Map();
 for (const section of nav) {
   const pages = [];
   for (const slug of section.pages) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error(`Invalid doc slug "${slug}"`);
-    const { page, ids } = renderPage(slug, await readFile(join(contentDir, `${slug}.md`), 'utf8'));
+    const markdown = await readFile(join(contentDir, `${slug}.md`), 'utf8');
+    const { page, ids } = renderPage(slug, markdown);
+    markdownPages.set(slug, markdown);
     rendered.set(slug, { page, ids });
     await writeFile(join(outDir, `${slug}.json`), JSON.stringify(page));
     pages.push({ slug, title: page.title, description: page.description });
@@ -137,4 +148,49 @@ ${loaders}
 `,
 );
 
-console.log(`✔ Docs: ${slugs.length} pages in ${sections.length} sections`);
+// ---- Markdown for AI agents -------------------------------------------------
+// Site-absolute links become full URLs: an agent reads these files out of context.
+const forAgents = (markdown) =>
+  markdown.replace(/\]\((\/[^)\s]*)\)/g, (_, path) => `](${SITE}${path})`);
+
+await rm(publicDir, { recursive: true, force: true });
+await mkdir(join(publicDir, 'docs'), { recursive: true });
+for (const [slug, markdown] of markdownPages) await writeFile(join(publicDir, 'docs', `${slug}.md`), forAgents(markdown));
+
+await writeFile(
+  join(publicDir, 'llms-full.txt'),
+  `# ng-email documentation\n\nEvery page of ${SITE}/docs, in reading order.\n\n` +
+    slugs.map((slug) => `<!-- page: ${slug} -->\n${forAgents(markdownPages.get(slug)).trim()}\n`).join('\n'),
+);
+
+const registryIndex = join(web, '../../packages/blocks/dist/r/index.json');
+const items = existsSync(registryIndex) ? JSON.parse(await readFile(registryIndex, 'utf8')).items : [];
+const itemLine = (i) => `- [${i.title}](${SITE}/r/${i.name}.json): ${i.description} Add with \`npx ng-email add ${i.name}\`.`;
+const llms = `# ng-email
+
+> Build HTML emails as standalone Angular components. ng-email renders them to the table-based, inline-styled HTML that Gmail, Outlook and Apple Mail expect, with a plain-text version alongside.
+
+Packages: \`@ng-email/render\` (renderEmail, renderEmailBoth, defineEmails), \`@ng-email/components\` (EMAIL_COMPONENTS: ngeHtml, ngeHead, ngeBody, nge-preview, ngeContainer, ngeSection, ngeRow, ngeColumn, ngeText, ngeHeading, ngeLink, ngeButton, ngeImg, ngeHr, nge-font) and \`@ng-email/cli\` (ng-email build, preview, export, check, add, mcp). Requires Angular 22.
+
+Rules that matter: lay out with tables (table ngeContainer, table ngeRow + td ngeColumn), never flexbox or grid; put styles in [ngeStyle], never in component styles; make per-recipient values signal inputs; use absolute https URLs and alt text on images.
+
+AI agents: run the MCP server with \`npx -y @ng-email/cli mcp\`, or install the agent skill with \`npx skills add yshashi/ng-email\`. See ${SITE}/docs/ai-agents.md.
+
+${sections.map((section) => `## ${section.title}\n\n${section.pages.map((p) => `- [${p.title}](${SITE}/docs/${p.slug}.md): ${p.description}`).join('\n')}`).join('\n\n')}
+${items.length ? `
+## Templates
+
+${items.filter((i) => i.kind === 'template').map(itemLine).join('\n')}
+
+## Blocks
+
+${items.filter((i) => i.kind === 'block').map(itemLine).join('\n')}
+` : ''}
+## Optional
+
+- [All docs in one file](${SITE}/llms-full.txt)
+- [Registry index](${SITE}/r/index.json): every block and template as JSON
+`;
+await writeFile(join(publicDir, 'llms.txt'), llms);
+
+console.log(`✔ Docs: ${slugs.length} pages in ${sections.length} sections, plus llms.txt and Markdown copies`);

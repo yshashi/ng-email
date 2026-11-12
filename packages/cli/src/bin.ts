@@ -5,7 +5,9 @@ import { type ParseArgsConfig, parseArgs } from 'node:util';
 
 import { RegistryError, addBlocks, listRegistry } from './add.js';
 import { BuildError, buildEmails } from './build.js';
+import { formatCheckIssues } from './check.js';
 import { exportEmails } from './export.js';
+import { renderEntry } from './render-entry.js';
 import { startPreview } from './preview/server.js';
 
 const HELP = `ng-email <command> [options]
@@ -14,7 +16,9 @@ Commands
   build <entry>    Compile and bundle email components for plain Node
   preview <entry>  Live preview in the browser, rebuilt on every change
   export <entry>   Render every email to <name>.html and <name>.txt
+  check <entry>    Render every email and report inbox problems (exit 1 on errors)
   add <name...>    Copy blocks/templates from the ng-email registry into your project
+  mcp              Run the MCP server for AI agents on stdio (see the "AI and agents" docs)
 
 build options
   -o, --outfile <file>   Output ESM bundle (default: dist/emails.mjs)
@@ -30,6 +34,12 @@ preview options
 
 export options
   -o, --outdir <dir>     Output directory (default: out)
+
+check options
+      --name <name>      Check one email (repeatable; default: all)
+
+mcp options
+      --registry <url>   Registry for blocks (default: the ng-email website, or $NG_EMAIL_REGISTRY)
 
 add options
   -d, --dir <dir>        Where to write the files (default: src/emails/blocks)
@@ -72,6 +82,14 @@ const COMMAND_OPTIONS = {
   export: {
     ...SHARED,
     outdir: { type: 'string', short: 'o' },
+  },
+  check: {
+    ...SHARED,
+    name: { type: 'string', multiple: true },
+  },
+  mcp: {
+    help: { type: 'boolean', short: 'h' },
+    registry: { type: 'string' },
   },
   add: {
     help: { type: 'boolean', short: 'h' },
@@ -190,6 +208,12 @@ async function main(argv: string[]): Promise<number> {
   if (command === 'add') {
     return runAdd(values, positionals);
   }
+  if (command === 'mcp') {
+    // Loaded on demand: the MCP SDK is only needed by this command.
+    const { runMcpServer } = await import('./mcp.js');
+    await runMcpServer({ registry: values['registry'] as string | undefined });
+    return 0;
+  }
   if (positionals.length !== 1) {
     process.stderr.write(`ng-email ${command}: expected exactly one <entry> file.\nRun "ng-email --help".\n`);
     return 1;
@@ -243,8 +267,35 @@ async function main(argv: string[]): Promise<number> {
       }
     }
 
+    case 'check': {
+      try {
+        const result = await renderEntry({
+          entry,
+          tsconfig,
+          dev: values['dev'] as boolean | undefined,
+          names: values['name'] as string[] | undefined,
+        });
+        let errors = result.failed.length;
+        for (const email of result.rendered) {
+          process.stdout.write(`\n${email.name} (${(email.check.bytes / 1024).toFixed(1)} kB)\n`);
+          process.stdout.write(`${formatCheckIssues(email.check).replace(/^/gm, '  ')}\n`);
+          if (!email.check.ok) errors++;
+        }
+        for (const { name, error } of result.failed) process.stderr.write(`\n✖ ${name}: ${error}\n`);
+        if (result.rendered.length === 0 && result.failed.length === 0) {
+          process.stderr.write('✖ No emails found: export a defineEmails() registry or email components from the entry.\n');
+          return 1;
+        }
+        process.stdout.write(errors ? `\n✖ ${errors} email${errors === 1 ? '' : 's'} with errors\n` : '\n✔ All emails passed\n');
+        return errors ? 1 : 0;
+      } catch (error) {
+        return fail(error);
+      }
+    }
+
     case 'add':
-      return runAdd(values, positionals); // handled above; keeps the switch exhaustive
+    case 'mcp':
+      return 1; // handled above; keeps the switch exhaustive
 
     case 'preview': {
       const portText = (values['port'] as string | undefined) ?? '3000';

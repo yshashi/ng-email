@@ -79,6 +79,22 @@ This copies ready-made blocks and templates from the ng-email registry into `src
 * `--registry <url|folder>` (or `NG_EMAIL_REGISTRY`) points at another registry, for example your own fork.
 * After adding, it prints the import line and how to use the block (`<header-centered />` inside your email's template).
 
+## `ng-email check`
+
+```bash
+npx ng-email check src/emails/index.ts
+```
+
+Renders every email with its preview inputs and reports inbox problems: Gmail clipping (over 102 kB), images without `alt`, relative URLs, flexbox and grid, missing preview text and more. Exits with 1 on errors, so it can gate CI. `--name <email>` checks one.
+
+## `ng-email mcp`: for AI agents
+
+```bash
+claude mcp add ng-email -- npx -y @ng-email/cli mcp
+```
+
+Runs an [MCP](https://modelcontextprotocol.io) server on stdio, so coding agents (Claude Code, Cursor, VS Code, Codex, …) can list and add blocks, render and check your emails, and read the docs. Setup for each agent: [AI and agents](https://yshashi.github.io/ng-email/docs/ai-agents).
+
 ## Listing your emails
 
 `preview` and `export` read an exported `emails` registry from the entry:

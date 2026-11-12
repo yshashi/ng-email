@@ -1,6 +1,6 @@
 {
   "name": "@ng-email/cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "ng-email command line: build Angular email components into a self-contained bundle that plain Node can import.",
   "license": "MIT",
   "repository": {
@@ -47,7 +47,9 @@
   },
   "dependencies": {
     "@babel/core": "^8.0.1",
-    "esbuild": "^0.28.2"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "esbuild": "^0.28.2",
+    "zod": "^4.6.7"
   },
   "peerDependencies": {
     "@angular/compiler-cli": "^22.0.0",

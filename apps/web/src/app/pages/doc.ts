@@ -48,7 +48,10 @@ const EDIT_BASE = 'https://github.com/yshashi/ng-email/edit/main/apps/web/conten
         <div class="mt-10"><div class="doc-body" [innerHTML]="html()" (click)="onBodyClick($event)"></div></div>
 
         <footer class="mt-16 border-t border-line pt-6">
-          <a class="text-md text-link underline-offset-3 hover:underline" [href]="editUrl()" target="_blank" rel="noopener">Edit this page on GitHub</a>
+          <div class="flex flex-wrap gap-x-6 gap-y-2">
+            <a class="text-md text-link underline-offset-3 hover:underline" [href]="editUrl()" target="_blank" rel="noopener">Edit this page on GitHub</a>
+            <a class="text-md text-link underline-offset-3 hover:underline" [href]="'docs/' + page().slug + '.md'">View as Markdown</a>
+          </div>
           <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             @if (prev(); as p) {
               <a [routerLink]="['/docs', p.slug]" class="group flex items-center gap-3 rounded-lg border border-line px-4 py-3 transition-colors hover:border-line-strong">

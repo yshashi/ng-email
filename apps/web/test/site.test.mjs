@@ -134,3 +134,27 @@ describe('docs', async () => {
     assert.match(html, /<a class="doc-anchor" href="docs\/sending#nodemailer-smtp" aria-hidden="true" tabindex="-1">#<\/a>/);
   });
 });
+
+describe('docs for AI agents', async () => {
+  const nav = JSON.parse(await readFile(join(web, 'content/docs/_nav.json'), 'utf8'));
+  const docSlugs = nav.flatMap((s) => s.pages);
+
+  test('llms.txt indexes every docs page, block and template with absolute links', async () => {
+    const llms = await readFile(join(out, 'llms.txt'), 'utf8');
+    assert.match(llms, /^# ng-email\n\n> /);
+    for (const s of docSlugs) assert.ok(llms.includes(`(https://yshashi.github.io/ng-email/docs/${s}.md)`), s);
+    for (const item of registry.items) assert.ok(llms.includes(`npx ng-email add ${item.name}`), item.name);
+  });
+
+  test('each docs page is published as Markdown, with site links made absolute', async () => {
+    for (const s of docSlugs) assert.ok(existsSync(join(out, 'docs', `${s}.md`)), s);
+    const ai = await readFile(join(out, 'docs/ai-agents.md'), 'utf8');
+    assert.match(ai, /\]\(https:\/\/yshashi\.github\.io\/ng-email\/docs\/blocks#add-them-with-the-cli\)/);
+    assert.doesNotMatch(ai, /\]\(\/docs\//);
+  });
+
+  test('llms-full.txt holds every page, marked for search_docs', async () => {
+    const full = await readFile(join(out, 'llms-full.txt'), 'utf8');
+    for (const s of docSlugs) assert.ok(full.includes(`<!-- page: ${s} -->`), s);
+  });
+});

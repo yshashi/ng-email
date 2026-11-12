@@ -103,6 +103,13 @@ function validateItem(name: string, data: unknown): RegistryItem {
   return item as RegistryItem;
 }
 
+/** Reads one registry entry, or undefined when the registry has no such name. */
+export async function readRegistryItem(name: string, registry?: string, cwd = process.cwd()): Promise<RegistryItem | undefined> {
+  if (!NAME.test(name)) return undefined;
+  const data = await readRegistryFile(resolveRegistry(registry, cwd), `${name}.json`);
+  return data === undefined ? undefined : validateItem(name, data);
+}
+
 function resolvesFrom(cwd: string, pkg: string): boolean {
   try {
     createRequire(join(cwd, 'noop.js')).resolve(`${pkg}/package.json`);

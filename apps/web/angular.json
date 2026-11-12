@@ -21,7 +21,10 @@
             "server": "src/main.server.ts",
             "outputMode": "static",
             "tsConfig": "tsconfig.app.json",
-            "assets": [{ "glob": "**/*", "input": "public" }],
+            "assets": [
+              { "glob": "**/*", "input": "public" },
+              { "glob": "**/*", "input": "src/generated/public" }
+            ],
             "styles": ["src/styles.css"]
           },
           "configurations": {

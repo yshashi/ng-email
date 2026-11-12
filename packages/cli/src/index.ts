@@ -3,6 +3,7 @@ export {
   RegistryError,
   addBlocks,
   listRegistry,
+  readRegistryItem,
   type AddOptions,
   type AddResult,
   type RegistryIndexItem,
@@ -25,3 +26,14 @@ export {
   angularLinkerPlugin,
   createLinkerCache,
 } from './linker.js';
+export {
+  type CheckIssue,
+  type CheckLevel,
+  type CheckResult,
+  GMAIL_CLIP_BYTES,
+  checkEmailHtml,
+  formatCheckIssues,
+} from './check.js';
+export { type DocsMatch, DEFAULT_SITE, fetchDocsIndex, fetchDocsPage, searchDocs } from './docs.js';
+export { type RenderEntryOptions, type RenderEntryResult, type RenderedEntryEmail, renderEntry } from './render-entry.js';
+export { type McpServerOptions, createMcpServer, runMcpServer } from './mcp.js';
