@@ -1,0 +1,270 @@
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/public-sans';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+/* ---- tokens ------------------------------------------------------------------
+   paper   #F4F6FA  cool envelope white, the page
+   surface #FFFFFF  cards and frames
+   ink     #131A2A  text and primary actions
+   muted   #5B6478  secondary text
+   line    #DCE1EA  hairlines
+   xray    #C2367A  the one accent: table X-ray outlines and active states
+------------------------------------------------------------------------------ */
+:root {
+  --paper: #f4f6fa;
+  --surface: #ffffff;
+  --sunken: #eceff5;
+  --ink: #131a2a;
+  --ink-soft: #2a3346;
+  --muted: #5b6478;
+  --line: #dce1ea;
+  --line-strong: #c4cbd8;
+  --xray: #c2367a;
+  --xray-soft: #f9e3ee;
+  --on-ink: #f4f6fa;
+  --stage: #e6eaf1;
+
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Public Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
+  --shadow: 0 1px 2px rgb(19 26 42 / 6%), 0 8px 24px -12px rgb(19 26 42 / 18%);
+  --page: min(1180px, 100% - 32px);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0e1320;
+    --surface: #151b2b;
+    --sunken: #11172a;
+    --ink: #e6e9f0;
+    --ink-soft: #c9cfdc;
+    --muted: #98a1b5;
+    --line: #262e42;
+    --line-strong: #36405a;
+    --xray: #f06aa8;
+    --xray-soft: #3a1830;
+    --on-ink: #0e1320;
+    --stage: #0b0f1a;
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px -14px rgb(0 0 0 / 70%);
+    color-scheme: dark;
+  }
+}
+
+/* ---- base ------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 80px;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
+}
+
+:focus-visible {
+  outline: 2px solid var(--xray);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---- shared controls --------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  font: 600 14px/1 var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--ink);
+}
+
+.btn--primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+.btn--primary:hover {
+  background: var(--ink-soft);
+}
+
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 8px;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+}
+
+.seg button {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  padding: 5px 11px;
+  font: 500 13px/1.2 var(--font-body);
+  cursor: pointer;
+}
+
+.seg button:hover {
+  color: var(--ink);
+}
+
+.seg button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgb(19 26 42 / 12%);
+}
+
+/* The X-ray switch: the accent belongs to it alone. */
+.xray-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 31px;
+  padding: 0 11px;
+  border-radius: 8px;
+  border: 1px dashed var(--line-strong);
+  background: transparent;
+  color: var(--muted);
+  font: 500 13px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.xray-toggle::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 1.5px dashed currentColor;
+  border-radius: 2px;
+}
+
+.xray-toggle[aria-pressed='true'] {
+  border-color: var(--xray);
+  color: var(--xray);
+  background: var(--xray-soft);
+}
+
+/* ---- highlighted code (Shiki, dual theme via CSS variables) ----------------- */
+.code-block {
+  margin: 0;
+  overflow: auto;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.code-block pre.shiki {
+  margin: 0;
+  padding: 16px 18px;
+  background: transparent !important;
+}
+
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+    color: var(--shiki-dark);
+  }
+}
+
+.cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font: 13px/1.4 var(--font-mono);
+}
+
+.cmd code {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.cmd code::before {
+  content: '$ ';
+  color: var(--muted);
+}

@@ -6,3 +6,7 @@ dist-test/
 .DS_Store
 npm-debug.log*
 packages/cli/LICENSE
+apps/web/src/generated/
+apps/web/public/r/
+apps/web/public/static/
+apps/web/.angular/
