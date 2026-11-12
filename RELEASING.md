@@ -1,6 +1,11 @@
 # Releasing
 
-All three packages are released together with the same version.
+Each package has its own version. Release only the packages that changed, and tag the release `<package>@<version>` (for example `cli@0.2.0`).
+
+| Released | render | components | cli |
+|---|---|---|---|
+| 0.1.0 | 0.1.0 | 0.1.0 | 0.1.0 |
+| CLI with `ng-email add` | | | 0.2.0 |
 
 | Package | Published from | Notes |
 |---|---|---|
@@ -21,7 +26,7 @@ Every package has `publishConfig.access: public`. Scoped packages are private by
    ```bash
    git status
    ```
-2. **Bump the version** in `packages/render/package.json`, `packages/components/package.json` and `packages/cli/package.json`. In `packages/cli/package.json`, also bump the `@ng-email/render` peer range.
+2. **Bump the version** of each package that changed (`packages/<name>/package.json`). If `render` gets a release the CLI depends on, also raise the `@ng-email/render` peer range in `packages/cli/package.json`.
 3. **Build and run every test.** This includes the end-to-end tests that render from a built bundle with plain `node`.
    ```bash
    npm test
@@ -37,7 +42,7 @@ Every package has `publishConfig.access: public`. Scoped packages are private by
    ```bash
    npm whoami
    ```
-6. **Publish in dependency order.** npm asks for a 2FA code, or opens a browser, for each package.
+6. **Publish what changed, in dependency order** (render, then components, then cli). npm asks for a 2FA code, or opens a browser, for each package.
    ```bash
    npm publish packages/render/dist
    ```
@@ -49,7 +54,7 @@ Every package has `publishConfig.access: public`. Scoped packages are private by
    ```
 7. **Tag the release and push.**
    ```bash
-   git tag v0.1.0
+   git tag cli@0.2.0
    ```
    ```bash
    git push origin main --tags
@@ -58,6 +63,12 @@ Every package has `publishConfig.access: public`. Scoped packages are private by
    ```bash
    npm view @ng-email/render version && npm view @ng-email/components version && npm view @ng-email/cli version
    ```
+
+## The website
+
+The website (`apps/web`) is deployed to <https://yshashi.github.io/ng-email/> by `.github/workflows/pages.yml` on every push to `main`, after the full test suite passes. It is also the registry `ng-email add` downloads from (`/r/*.json`). **Deploy the website before releasing a CLI version that relies on new registry content.**
+
+One-time setup: repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ## If something goes wrong
 

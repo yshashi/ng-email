@@ -1,6 +1,6 @@
 {
   "name": "@ng-email/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ng-email command line: build Angular email components into a self-contained bundle that plain Node can import.",
   "license": "MIT",
   "repository": {

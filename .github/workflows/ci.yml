@@ -1,0 +1,34 @@
+# Runs the full test suite and typecheck on pull requests.
+# (Pushes to main are tested by the "Deploy website" workflow before it deploys.)
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Builds every package, runs render/components tests in Angular dev and
+      # prod mode, the blocks and CLI end-to-end tests, and the website tests.
+      - run: npm test
+
+      - run: npm run typecheck

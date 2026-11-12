@@ -75,8 +75,10 @@ describe('published registry', () => {
     for (const item of registry.items) assert.ok(existsSync(join(out, 'r', `${item.name}.json`)), item.name);
   });
 
-  test('unknown URLs have a client-rendered fallback', () => {
-    assert.ok(existsSync(join(out, 'index.csr.html')));
+  test('unknown URLs get 404.html: the client-rendered app, under the base path', async () => {
+    const notFound = await readFile(join(out, '404.html'), 'utf8');
+    assert.equal(notFound, await readFile(join(out, 'index.csr.html'), 'utf8'));
+    assert.match(notFound, /<base href="\/ng-email\/">/);
   });
 
   test('no absolute local paths leak into the build', async () => {

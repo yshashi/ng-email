@@ -8,7 +8,7 @@
     "sync": "node scripts/sync-registry.mjs && node scripts/sync-docs.mjs",
     "start": "npm run sync && ng serve",
     "build": "npm run sync && ng build",
-    "build:pages": "npm run sync && ng build --base-href /ng-email/"
+    "build:pages": "npm run sync && ng build --base-href /ng-email/ && cp dist/browser/index.csr.html dist/browser/404.html"
   },
   "dependencies": {
     "@angular/common": "22.2.5",
