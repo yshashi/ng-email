@@ -1,40 +1,36 @@
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 
+import { Icon } from './icon';
+
 /** Copies `text` to the clipboard and confirms in place ("Copied"). */
 @Component({
   selector: 'site-copy',
+  imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <button type="button" class="copy" (click)="copy()" [attr.aria-label]="ariaLabel() || null">
+    <button
+      type="button"
+      class="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2 text-sm font-medium whitespace-nowrap text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+      (click)="copy()"
+      [attr.aria-label]="ariaLabel() || null"
+    >
+      <site-icon [name]="state() === 'copied' ? 'check' : 'copy'" [size]="14" />
       @switch (state()) {
         @case ('copied') {<span>Copied</span>}
         @case ('failed') {<span>Copy failed</span>}
-        @default {<span>{{ label() }}</span>}
+        @default {<span [class.sr-only]="iconOnly()">{{ label() }}</span>}
       }
     </button>
-    <span class="visually-hidden" aria-live="polite">{{ state() === 'copied' ? 'Copied to clipboard' : '' }}</span>
+    <span class="sr-only" aria-live="polite">{{ state() === 'copied' ? 'Copied to clipboard' : '' }}</span>
   `,
-  styles: `
-    .copy {
-      height: 28px;
-      padding: 0 10px;
-      border-radius: 6px;
-      border: 1px solid var(--line);
-      background: var(--sunken);
-      color: var(--ink);
-      font: 500 12.5px/1 var(--font-body);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .copy:hover {
-      border-color: var(--line-strong);
-    }
-  `,
+  host: { class: 'inline-flex shrink-0' },
 })
 export class CopyButton {
   readonly text = input.required<string>();
   readonly label = input('Copy');
   readonly ariaLabel = input('');
+  /** Show only the icon until copied. */
+  readonly iconOnly = input(false);
 
   protected readonly state = signal<'idle' | 'copied' | 'failed'>('idle');
   private timer: ReturnType<typeof setTimeout> | undefined;

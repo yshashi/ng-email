@@ -38,7 +38,7 @@ describe('prerendered pages', () => {
 
   test('home has the hero, the live welcome preview and the install command', async () => {
     const html = await page('');
-    assert.match(html, /Angular components in\./);
+    assert.match(html, /<h1[^>]*>Email templates as Angular components<\/h1>/);
     assert.match(html, /srcdoc="[^"]*Welcome aboard, Priya/);
     assert.match(html, /npm install @ng-email\/render @ng-email\/components/);
     assert.match(html, /<title>ng-email: email templates as Angular components<\/title>/);

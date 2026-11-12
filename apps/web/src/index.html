@@ -8,6 +8,8 @@
   <meta name="description" content="Build HTML emails with standalone Angular components. Copy-paste blocks, templates, and a renderer that outputs inbox-safe HTML and plain text.">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <!-- Apply a theme the visitor picked before first paint, so the page doesn't flash. -->
+  <script>try{var t=localStorage.getItem('ng-email-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
   <site-root></site-root>

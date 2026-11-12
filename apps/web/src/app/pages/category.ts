@@ -4,152 +4,49 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { blockCategories } from '../registry';
 import type { Category, SiteItem } from '../registry.types';
 import { BlockViewer } from '../shared/block-viewer';
+import { Icon } from '../shared/icon';
+import { PageHeader } from '../shared/page-header';
 
 @Component({
   selector: 'site-category',
-  imports: [RouterLink, RouterLinkActive, BlockViewer],
+  imports: [RouterLink, RouterLinkActive, BlockViewer, Icon, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="layout">
-      <nav class="side" aria-label="Component categories">
-        <a routerLink="/components" class="side__all">All components</a>
-        <ul>
+    <div class="mx-auto grid max-w-page grid-cols-1 gap-x-10 px-4 pt-6 sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-10 lg:pt-10">
+      <nav class="lg:sticky lg:top-10 lg:max-h-[calc(100vh-80px)] lg:self-start lg:overflow-auto" aria-label="Component categories">
+        <a routerLink="/components" class="inline-flex h-8 items-center gap-2 font-display text-md font-medium transition-colors hover:text-accent">
+          <site-icon name="chevron-left" />
+          Components
+        </a>
+        <!-- Desktop: a list on a rail line. Phones: a row that scrolls sideways. -->
+        <ul class="-mx-4 mt-3 flex gap-1 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:mt-4 lg:flex-col lg:gap-0 lg:border-l lg:border-line lg:px-0">
           @for (c of categories; track c.slug) {
-            <li>
-              <a [routerLink]="['/components', c.slug]" routerLinkActive="is-active" [attr.aria-current]="c.slug === data().category.slug ? 'page' : null">
-                {{ c.name }}<span>{{ c.items.length }}</span>
+            <li class="shrink-0">
+              <a
+                [routerLink]="['/components', c.slug]"
+                routerLinkActive="is-active"
+                ariaCurrentWhenActive="page"
+                class="side-link max-lg:ml-0 max-lg:rounded-md max-lg:border max-lg:border-line max-lg:px-3 max-lg:whitespace-nowrap"
+              >
+                {{ c.name }}<span class="text-sm font-normal text-muted tabular-nums">{{ c.items.length }}</span>
               </a>
             </li>
           }
         </ul>
       </nav>
 
-      <div class="content">
-        <header class="page-head">
-          <h1>{{ data().category.name }}</h1>
-          <p>{{ data().items.length }} {{ data().items.length === 1 ? 'block' : 'blocks' }}. Each is one self-contained
-            standalone component; drop it inside your email's <code>table ngeContainer</code>.</p>
-        </header>
-        <div class="list">
+      <div class="min-w-0">
+        <site-page-header class="mt-6 lg:mt-0" [title]="data().category.name" [crumbs]="['Components', data().category.name]">
+          {{ data().items.length }} {{ data().items.length === 1 ? 'block' : 'blocks' }}. Each is one standalone component.
+          Place it inside your email's <code class="code-inline">table ngeContainer</code>.
+        </site-page-header>
+        <div class="mt-12 grid gap-16">
           @for (item of data().items; track item.name) {
             <site-block-viewer [item]="item" />
           }
         </div>
       </div>
     </div>
-  `,
-  styles: `
-    :host {
-      display: block;
-      width: var(--page);
-      margin: 0 auto;
-    }
-    .layout {
-      display: grid;
-      grid-template-columns: 200px minmax(0, 1fr);
-      gap: 40px;
-      padding-top: 40px;
-    }
-    .side {
-      position: sticky;
-      top: 84px;
-      align-self: start;
-      max-height: calc(100vh - 100px);
-      overflow: auto;
-      font-size: 14.5px;
-    }
-    .side__all {
-      display: block;
-      margin-bottom: 10px;
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 13px;
-    }
-    .side__all::before {
-      content: '← ';
-    }
-    .side ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 2px;
-    }
-    .side li a {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 10px;
-      border-radius: var(--radius-s);
-      text-decoration: none;
-      color: var(--muted);
-    }
-    .side li a:hover {
-      color: var(--ink);
-    }
-    .side li a.is-active {
-      background: var(--surface);
-      color: var(--ink);
-      font-weight: 600;
-      box-shadow: inset 2px 0 0 var(--xray);
-    }
-    .side li span {
-      font: 11.5px/1.8 var(--font-mono);
-      color: var(--muted);
-    }
-    .page-head {
-      padding: 16px 0 28px;
-    }
-    .page-head h1 {
-      font-size: clamp(34px, 4.6vw, 52px);
-      font-variation-settings: 'wdth' 88;
-    }
-    .page-head p {
-      margin-top: 10px;
-      color: var(--muted);
-      max-width: 44em;
-    }
-    .page-head code {
-      font-size: 0.86em;
-      background: var(--sunken);
-      padding: 1px 6px;
-      border-radius: 4px;
-      color: var(--ink);
-    }
-    /* min-width: 0 lets the column shrink below its widest child (code, toolbars). */
-    .content {
-      min-width: 0;
-    }
-    .list {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 28px;
-    }
-    @media (max-width: 860px) {
-      .layout {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 0;
-        padding-top: 20px;
-      }
-      .side {
-        position: static;
-        max-height: none;
-      }
-      .side ul {
-        display: flex;
-        gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 6px;
-      }
-      .side li a {
-        white-space: nowrap;
-        gap: 8px;
-        border: 1px solid var(--line);
-      }
-      .side li a.is-active {
-        box-shadow: none;
-        border-color: var(--xray);
-      }
-    }
   `,
 })
 export class CategoryPage {

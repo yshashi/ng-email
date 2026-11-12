@@ -1,238 +1,266 @@
-@import '@fontsource-variable/bricolage-grotesque';
-@import '@fontsource-variable/public-sans';
-@import '@fontsource/ibm-plex-mono/400.css';
-@import '@fontsource/ibm-plex-mono/500.css';
+@import 'tailwindcss' source('.');
+@source not './generated';
 
-/* ---- tokens ------------------------------------------------------------------
-   paper   #F4F6FA  cool envelope white, the page
-   surface #FFFFFF  cards and frames
-   ink     #131A2A  text and primary actions
-   muted   #5B6478  secondary text
-   line    #DCE1EA  hairlines
-   xray    #C2367A  the one accent: table X-ray outlines and active states
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/inter-tight/wght.css';
+@import '@fontsource/dm-mono/400.css';
+@import '@fontsource/dm-mono/500.css';
+
+/* ---- theme -------------------------------------------------------------------
+   Close to angular.dev: Inter for text, Inter Tight for headings, DM Mono for
+   code, violet-tinted greys, an electric violet accent, blue links and the
+   orange-red to pink to violet gradient for the few brand moments.
+
+   Theme: the system setting, unless the visitor picked one (data-theme on
+   <html>, set before first paint by the script in index.html).
 ------------------------------------------------------------------------------ */
 :root {
-  --paper: #f4f6fa;
-  --surface: #ffffff;
-  --sunken: #eceff5;
-  --ink: #131a2a;
-  --ink-soft: #2a3346;
-  --muted: #5b6478;
-  --line: #dce1ea;
-  --line-strong: #c4cbd8;
-  --xray: #c2367a;
-  --xray-soft: #f9e3ee;
-  --on-ink: #f4f6fa;
-  --stage: #e6eaf1;
-
-  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-body: 'Public Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-
-  --radius-s: 6px;
-  --radius-m: 10px;
-  --radius-l: 16px;
-  --shadow: 0 1px 2px rgb(19 26 42 / 6%), 0 8px 24px -12px rgb(19 26 42 / 18%);
-  --page: min(1180px, 100% - 32px);
-
+  --page: #ffffff;
+  --card: #ffffff;
+  --raised: oklch(97.12% 0.002 325.59);
+  --code: oklch(98.81% 0 0);
+  --ink: oklch(19.37% 0.006 300.98);
+  --ink-2: oklch(36.98% 0.014 302.71);
+  --muted: oklch(54.84% 0.023 304.99);
+  --line: oklch(91.75% 0.004 301.42);
+  --line-strong: oklch(84.01% 0.009 308.34);
+  --accent: oklch(53.18% 0.28 296.97);
+  --link: oklch(51.01% 0.274 263.83);
+  --orange-red: oklch(63.32% 0.24 31.68);
+  --vivid-pink: oklch(69.02% 0.277 332.77);
+  --hot-pink: oklch(59.91% 0.239 8.14);
+  --electric-violet: oklch(53.18% 0.28 296.97);
+  /* Proof marks and other notes drawn on email previews. */
+  --proof: oklch(59.91% 0.239 8.14);
+  --on-proof: #ffffff;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0e1320;
-    --surface: #151b2b;
-    --sunken: #11172a;
-    --ink: #e6e9f0;
-    --ink-soft: #c9cfdc;
-    --muted: #98a1b5;
-    --line: #262e42;
-    --line-strong: #36405a;
-    --xray: #f06aa8;
-    --xray-soft: #3a1830;
-    --on-ink: #0e1320;
-    --stage: #0b0f1a;
-    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px -14px rgb(0 0 0 / 70%);
+  :root:not([data-theme='light']) {
+    --page: oklch(16.93% 0.004 285.95);
+    --card: oklch(19.37% 0.006 300.98);
+    --raised: oklch(25.16% 0.008 308.11);
+    --code: oklch(19.37% 0.006 300.98);
+    --ink: oklch(98.81% 0 0);
+    --ink-2: oklch(84.01% 0.009 308.34);
+    --muted: oklch(70.9% 0.015 304.04);
+    --line: oklch(30% 0.012 305);
+    --line-strong: oklch(42% 0.016 304);
+    --accent: color-mix(in srgb, oklch(53.18% 0.28 296.97), white 55%);
+    --link: color-mix(in srgb, oklch(51.01% 0.274 263.83), white 50%);
+    --proof: color-mix(in srgb, oklch(69.02% 0.277 332.77), white 20%);
+    --on-proof: oklch(16.93% 0.004 285.95);
     color-scheme: dark;
   }
 }
 
-/* ---- base ------------------------------------------------------------------ */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+:root[data-theme='dark'] {
+  --page: oklch(16.93% 0.004 285.95);
+  --card: oklch(19.37% 0.006 300.98);
+  --raised: oklch(25.16% 0.008 308.11);
+  --code: oklch(19.37% 0.006 300.98);
+  --ink: oklch(98.81% 0 0);
+  --ink-2: oklch(84.01% 0.009 308.34);
+  --muted: oklch(70.9% 0.015 304.04);
+  --line: oklch(30% 0.012 305);
+  --line-strong: oklch(42% 0.016 304);
+  --accent: color-mix(in srgb, oklch(53.18% 0.28 296.97), white 55%);
+  --link: color-mix(in srgb, oklch(51.01% 0.274 263.83), white 50%);
+  --proof: color-mix(in srgb, oklch(69.02% 0.277 332.77), white 20%);
+  --on-proof: oklch(16.93% 0.004 285.95);
+  color-scheme: dark;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  scroll-padding-top: 80px;
+@theme inline {
+  --color-*: initial;
+  --color-page: var(--page);
+  --color-card: var(--card);
+  --color-raised: var(--raised);
+  --color-code: var(--code);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-link: var(--link);
+  --color-proof: var(--proof);
+  --color-on-proof: var(--on-proof);
+  --color-white: #ffffff;
 }
 
-body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.6;
-  font-optical-sizing: auto;
-  -webkit-font-smoothing: antialiased;
-}
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter Tight Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
-  font-weight: 650;
-  letter-spacing: -0.025em;
-  line-height: 1.08;
-  margin: 0;
-}
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 20px;
+  --text-md: 14px;
+  --text-md--line-height: 20px;
+  --text-base: 15px;
+  --text-base--line-height: 24px;
+  --text-lg: 18px;
+  --text-lg--line-height: 28px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+  --text-3xl: 32px;
+  --text-3xl--line-height: 38px;
+  --text-4xl: 40px;
+  --text-4xl--line-height: 46px;
+  --text-5xl: 56px;
+  --text-5xl--line-height: 60px;
+  --text-hero: 80px;
+  --text-hero--line-height: 80px;
 
-p {
-  margin: 0;
-}
+  --container-page: 1200px;
 
-a {
-  color: inherit;
-}
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 150ms;
 
-code,
-kbd,
-pre {
-  font-family: var(--font-mono);
-}
+  --animate-settle: settle 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 
-:focus-visible {
-  outline: 2px solid var(--xray);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+  @keyframes settle {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 
-/* ---- shared controls --------------------------------------------------------- */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: var(--radius-s);
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
-  color: var(--ink);
-  font: 600 14px/1 var(--font-body);
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color 0.15s, background-color 0.15s;
+/* The brand gradient, Angular's orange-red to pink to violet. */
+@utility bg-brand {
+  background-image: linear-gradient(90deg, var(--orange-red) 0%, var(--vivid-pink) 50%, var(--electric-violet) 100%);
 }
 
-.btn:hover {
-  border-color: var(--ink);
+/* A 1px gradient border, like angular.dev's "Get started" button. */
+@utility border-brand {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--page), var(--page)) padding-box,
+    linear-gradient(90deg, var(--orange-red) 0%, var(--vivid-pink) 50%, var(--electric-violet) 100%) border-box;
 }
 
-.btn--primary {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--on-ink);
+/* The banner on index pages, after angular.dev's page headers. */
+@utility bg-banner {
+  background-color: var(--electric-violet);
+  background-image: radial-gradient(circle at 70% 120%, var(--hot-pink) 15%, var(--electric-violet) 85%);
 }
 
-.btn--primary:hover {
-  background: var(--ink-soft);
+/* ---- base ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 72px;
+  }
+
+  @media (width >= 64rem) {
+    html {
+      scroll-padding-top: 24px;
+    }
+  }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--electric-violet) 25%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
 
-.seg {
-  display: inline-flex;
-  padding: 3px;
-  gap: 2px;
-  border-radius: 8px;
-  background: var(--sunken);
-  border: 1px solid var(--line);
-}
+/* ---- controls shared across pages ------------------------------------------ */
+@layer components {
+  .btn {
+    @apply inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-line-strong bg-page px-4 text-md font-medium whitespace-nowrap text-ink transition-colors hover:bg-raised;
+  }
 
-.seg button {
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-  padding: 5px 11px;
-  font: 500 13px/1.2 var(--font-body);
-  cursor: pointer;
-}
+  .btn-primary {
+    @apply border-brand;
+  }
 
-.seg button:hover {
-  color: var(--ink);
-}
+  .btn-primary:hover {
+    background:
+      linear-gradient(var(--raised), var(--raised)) padding-box,
+      linear-gradient(90deg, var(--orange-red) 0%, var(--vivid-pink) 50%, var(--electric-violet) 100%) border-box;
+  }
 
-.seg button[aria-pressed='true'] {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 1px 2px rgb(19 26 42 / 12%);
-}
+  /* Segmented control, like the Material button toggles on angular.dev. */
+  .seg {
+    @apply inline-flex overflow-hidden rounded-md border border-line-strong;
+  }
 
-/* The X-ray switch: the accent belongs to it alone. */
-.xray-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 31px;
-  padding: 0 11px;
-  border-radius: 8px;
-  border: 1px dashed var(--line-strong);
-  background: transparent;
-  color: var(--muted);
-  font: 500 13px/1 var(--font-body);
-  cursor: pointer;
-}
+  .seg button {
+    @apply h-8 cursor-pointer px-3 text-sm text-ink-2 transition-colors hover:bg-raised hover:text-ink;
+  }
 
-.xray-toggle::before {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border: 1.5px dashed currentColor;
-  border-radius: 2px;
-}
+  .seg button + button {
+    @apply border-l border-line-strong;
+  }
 
-.xray-toggle[aria-pressed='true'] {
-  border-color: var(--xray);
-  color: var(--xray);
-  background: var(--xray-soft);
-}
+  .seg button[aria-pressed='true'] {
+    @apply bg-raised font-medium text-accent;
+  }
 
-/* ---- highlighted code (Shiki, dual theme via CSS variables) ----------------- */
-.code-block {
-  margin: 0;
-  overflow: auto;
-  border-radius: var(--radius-m);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-size: 13px;
-  line-height: 1.65;
-}
+  /* Inline code in running text. */
+  .code-inline {
+    @apply rounded-sm border border-line bg-raised px-1 font-mono text-[0.86em] text-ink;
+  }
 
-.code-block pre.shiki {
-  margin: 0;
-  padding: 16px 18px;
-  background: transparent !important;
+  /* Highlighted code (Shiki, dual theme through CSS variables). */
+  .code-block {
+    @apply overflow-auto bg-code font-mono text-sm leading-[22px];
+  }
+
+  .code-block pre.shiki {
+    @apply m-0 px-4 py-3.5;
+    background: transparent !important;
+  }
+
+  /* Side navigation: a rail line with the active page marked in violet. */
+  .side-link {
+    @apply -ml-px flex min-h-8 items-center justify-between gap-3 border-l-2 border-transparent py-1 pr-2 pl-4 text-md text-ink-2 transition-colors hover:border-line-strong hover:text-ink;
+  }
+
+  .side-link.is-active {
+    @apply border-accent font-medium text-accent;
+  }
 }
 
 .shiki,
@@ -241,30 +269,274 @@ pre {
 }
 
 @media (prefers-color-scheme: dark) {
-  .shiki,
-  .shiki span {
+  :root:not([data-theme='light']) .shiki,
+  :root:not([data-theme='light']) .shiki span {
     color: var(--shiki-dark);
   }
 }
 
-.cmd {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 100%;
-  padding: 6px 6px 6px 12px;
-  border-radius: var(--radius-s);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font: 13px/1.4 var(--font-mono);
+:root[data-theme='dark'] .shiki,
+:root[data-theme='dark'] .shiki span {
+  color: var(--shiki-dark);
 }
 
-.cmd code {
-  overflow-x: auto;
-  white-space: nowrap;
+/* ---- docs article: Markdown rendered at build time ------------------------- */
+.doc-body {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 26px;
 }
 
-.cmd code::before {
-  content: '$ ';
+.doc-body > * + * {
+  margin-top: 16px;
+}
+
+.doc-body > p:first-child {
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 28px;
+}
+
+.doc-body strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.doc-body h2,
+.doc-body h3 {
+  color: var(--ink);
+  scroll-margin-top: 72px;
+}
+
+.doc-body h2 {
+  margin-top: 48px;
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.01em;
+}
+
+.doc-body h3 {
+  margin-top: 32px;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.doc-body h2 + *,
+.doc-body h3 + * {
+  margin-top: 12px;
+}
+
+.doc-anchor {
+  margin-left: 8px;
   color: var(--muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
+}
+
+.doc-body h2:hover .doc-anchor,
+.doc-body h3:hover .doc-anchor {
+  opacity: 1;
+}
+
+.doc-body a:not(.doc-anchor) {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--link) 40%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms var(--ease-out);
+}
+
+.doc-body a:not(.doc-anchor):hover {
+  text-decoration-color: var(--link);
+}
+
+.doc-body ul,
+.doc-body ol {
+  padding-left: 20px;
+}
+
+.doc-body ul {
+  list-style: disc;
+}
+
+.doc-body ol {
+  list-style: decimal;
+}
+
+.doc-body li::marker {
+  color: var(--muted);
+}
+
+.doc-body li + li {
+  margin-top: 6px;
+}
+
+.doc-body :not(pre) > code {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--raised);
+  padding: 1px 5px;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+/* Callouts, like angular.dev's TIP and NOTE boxes. */
+.doc-body blockquote {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  background: var(--raised);
+  padding: 12px 16px;
+  color: var(--ink);
+}
+
+.doc-code {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--code);
+}
+
+.doc-code pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 22px;
+  background: transparent !important;
+}
+
+.doc-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 150ms var(--ease-out),
+    color 150ms var(--ease-out);
+}
+
+.doc-copy:hover {
+  color: var(--ink);
+}
+
+.doc-code:hover .doc-copy,
+.doc-copy:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .doc-copy {
+    opacity: 1;
+  }
+}
+
+.doc-table {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.doc-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.doc-table th,
+.doc-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-table th {
+  background: var(--raised);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.doc-table tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ---- side rail (desktop), after angular.dev's ------------------------------ */
+.rail-link {
+  position: relative;
+  display: flex;
+  height: 64px;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 16px;
+  transition: color 150ms var(--ease-out);
+}
+
+.rail-link:hover {
+  color: var(--ink);
+}
+
+.rail-link.is-active {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.rail-link.is-active svg {
+  color: var(--accent);
+}
+
+.rail-link.is-active::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--accent);
+}
+
+/* ---- home hero: a field of gradient dots, clear behind the headline -------- */
+.dot-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dot-field::before,
+.dot-field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.dot-field::before {
+  background-image: linear-gradient(120deg, var(--orange-red) 0%, var(--vivid-pink) 45%, var(--electric-violet) 100%);
+  mask-image: radial-gradient(circle, #000 1.1px, transparent 1.6px);
+  mask-size: 18px 18px;
+  opacity: 0.55;
+}
+
+.dot-field::after {
+  background:
+    radial-gradient(ellipse 52% 48% at 50% 46%, var(--page) 40%, transparent 100%),
+    linear-gradient(to bottom, transparent 55%, var(--page) 100%);
 }

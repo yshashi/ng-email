@@ -1,5 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect x="2" y="6" width="28" height="20" rx="4" fill="#131A2A"/>
-  <path d="M5 9.5 16 17l11-7.5" fill="none" stroke="#F4F6FA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="2.75" y="6.75" width="26.5" height="18.5" rx="3.25" fill="none" stroke="#C2367A" stroke-width="1.5" stroke-dasharray="2.5 2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <style>
+    rect { fill: #18181a; } path { stroke: #f7f7f6; }
+    @media (prefers-color-scheme: dark) { rect { fill: #ededed; } path { stroke: #141415; } }
+  </style>
+  <rect x="1.5" y="4" width="21" height="16" rx="3"/>
+  <path d="m5 8 7 5 7-5" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

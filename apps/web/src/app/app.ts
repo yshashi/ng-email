@@ -2,206 +2,98 @@ import { ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
+import { Icon, type IconName } from './shared/icon';
+import { Logo } from './shared/logo';
+import { ThemeToggle } from './shared/theme-toggle';
+
 const REPO = 'https://github.com/yshashi/ng-email';
 
 @Component({
   selector: 'site-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, Logo, ThemeToggle],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a class="skip" href="#main">Skip to content</a>
-    <header class="top">
-      <nav class="top__inner" aria-label="Main">
-        <a routerLink="/" class="brand" aria-label="ng-email home">
-          <svg viewBox="0 0 32 32" aria-hidden="true">
-            <rect x="2" y="6" width="28" height="20" rx="4" />
-            <path d="M5 9.5 16 17l11-7.5" />
-            <rect class="brand__xray" x="2.75" y="6.75" width="26.5" height="18.5" rx="3.25" />
-          </svg>
-          <span>ng-email</span>
-        </a>
-        <ul class="nav">
-          <li><a routerLink="/components" routerLinkActive="is-active">Components</a></li>
-          <li><a routerLink="/templates" routerLinkActive="is-active">Templates</a></li>
-          <li><a routerLink="/docs" routerLinkActive="is-active">Docs</a></li>
+    <a
+      href="#main"
+      class="fixed top-3 left-4 z-50 -translate-y-24 rounded-md bg-ink px-3 py-2 text-md text-page focus:translate-y-0"
+    >Skip to content</a>
+
+    <!-- Desktop: a fixed rail on the left, like angular.dev. -->
+    <nav
+      class="fixed inset-y-0 left-0 z-30 hidden w-22 flex-col items-center border-r border-line bg-page py-4 lg:flex"
+      aria-label="Main"
+    >
+      <a routerLink="/" class="mb-6 flex flex-col items-center gap-1.5 rounded-md p-1 text-xs font-medium" aria-label="ng-email home">
+        <site-logo [size]="32" />
+        <span aria-hidden="true">ng-email</span>
+      </a>
+      <ul class="flex w-full flex-col">
+        @for (link of links; track link.path) {
           <li>
-            <a [href]="repo" target="_blank" rel="noopener" class="nav__gh">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
-                />
-              </svg>
-              <span class="visually-hidden">ng-email on </span><span class="nav__gh-label">GitHub</span>
+            <a [routerLink]="link.path" routerLinkActive="is-active" class="rail-link">
+              <site-icon [name]="link.icon" [size]="20" />
+              {{ link.label }}
             </a>
           </li>
-        </ul>
-      </nav>
-    </header>
-
-    <main id="main">
-      <router-outlet />
-    </main>
-
-    <footer class="foot">
-      <div class="foot__inner">
-        <p>
-          <strong>ng-email</strong> is open source under the MIT license.
-          <a [href]="repo" target="_blank" rel="noopener">Source on GitHub</a>.
-        </p>
-        <p class="foot__muted">
-          A community project. Not affiliated with or endorsed by the Angular team or Google.
-        </p>
+        }
+      </ul>
+      <div class="mt-auto flex w-full flex-col items-center gap-1">
+        <a [href]="repo" target="_blank" rel="noopener" class="rail-link">
+          <site-icon name="github" [size]="20" />
+          GitHub
+        </a>
+        <site-theme-toggle [stacked]="true" />
       </div>
-    </footer>
-  `,
-  styles: `
-    :host {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    .skip {
-      position: absolute;
-      left: 16px;
-      top: 12px;
-      transform: translateY(-200%);
-      padding: 8px 12px;
-      background: var(--ink);
-      color: var(--on-ink);
-      border-radius: var(--radius-s);
-      z-index: 20;
-    }
-    .skip:focus {
-      transform: none;
-    }
-    .top {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: color-mix(in srgb, var(--paper) 86%, transparent);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--line);
-    }
-    .top__inner {
-      width: var(--page);
-      margin: 0 auto;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      font: 650 19px/1 var(--font-display);
-      letter-spacing: -0.02em;
-      white-space: nowrap;
-      flex: none;
-    }
-    .brand svg {
-      width: 28px;
-      height: 28px;
-    }
-    .brand svg rect:first-child {
-      fill: var(--ink);
-    }
-    .brand svg path {
-      fill: none;
-      stroke: var(--paper);
-      stroke-width: 2.2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .brand__xray {
-      fill: none;
-      stroke: var(--xray);
-      stroke-width: 1.5;
-      stroke-dasharray: 2.5 2;
-    }
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .nav a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 10px;
-      border-radius: var(--radius-s);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--muted);
-    }
-    .nav a:hover,
-    .nav a.is-active {
-      color: var(--ink);
-    }
-    .nav a.is-active {
-      background: var(--sunken);
-    }
-    .nav__gh svg {
-      width: 16px;
-      height: 16px;
-      fill: currentColor;
-    }
-    main {
-      flex: 1;
-    }
-    .foot {
-      border-top: 1px solid var(--line);
-      margin-top: 96px;
-    }
-    .foot__inner {
-      width: var(--page);
-      margin: 0 auto;
-      padding: 28px 0 40px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 8px 24px;
-      font-size: 14px;
-    }
-    .foot__muted {
-      color: var(--muted);
-    }
-    @media (max-width: 560px) {
-      .nav {
-        gap: 0;
-      }
-      .nav a {
-        padding: 7px 6px;
-        font-size: 13.5px;
-      }
-      /* Phones: GitHub shows as its icon. */
-      .nav__gh-label {
-        display: none;
-      }
-      .nav__gh svg {
-        width: 18px;
-        height: 18px;
-      }
-    }
-    @media (max-width: 440px) {
-      /* Narrow phones: GitHub stays reachable from the footer. */
-      .nav li:last-child {
-        display: none;
-      }
-    }
+    </nav>
+
+    <div class="flex min-h-screen flex-col lg:pl-22">
+      <!-- Phones and tablets: a top bar. -->
+      <header class="sticky top-0 z-30 border-b border-line bg-page lg:hidden">
+        <nav class="flex h-14 items-center justify-between gap-3 px-4" aria-label="Main">
+          <a routerLink="/" class="flex shrink-0 items-center gap-2 rounded-md font-display text-base font-medium" aria-label="ng-email home">
+            <site-logo [size]="26" />
+            <span class="hidden min-[400px]:inline" aria-hidden="true">ng-email</span>
+          </a>
+          <div class="flex items-center gap-0.5">
+            @for (link of links; track link.path) {
+              <a
+                [routerLink]="link.path"
+                routerLinkActive="text-accent! font-medium"
+                class="flex h-8 items-center rounded-md px-2 text-sm text-ink-2 transition-colors hover:text-ink sm:px-3 sm:text-md"
+              >{{ link.label }}</a>
+            }
+            <site-theme-toggle />
+          </div>
+        </nav>
+      </header>
+
+      <main id="main" class="flex-1">
+        <router-outlet />
+      </main>
+
+      <footer class="mt-32 border-t border-line">
+        <div class="mx-auto flex max-w-page flex-col gap-2 px-4 py-10 text-md text-ink-2 sm:flex-row sm:justify-between sm:px-6 lg:px-10">
+          <p>
+            ng-email is open source under the MIT license.
+            <a [href]="repo" target="_blank" rel="noopener" class="text-link underline underline-offset-3">Source on GitHub</a>
+          </p>
+          <p class="text-muted">A community project, not affiliated with the Angular team or Google</p>
+        </div>
+      </footer>
+    </div>
   `,
 })
 export class App {
   protected readonly repo = REPO;
+  protected readonly links: Array<{ path: string; label: string; icon: IconName }> = [
+    { path: '/components', label: 'Components', icon: 'blocks' },
+    { path: '/templates', label: 'Templates', icon: 'mail' },
+    { path: '/docs', label: 'Docs', icon: 'docs' },
+  ];
 
   constructor() {
-    // Router anchor scrolling ignores CSS scroll-margin: keep headings clear of the sticky header.
-    inject(ViewportScroller).setOffset([0, 84]);
+    // Router anchor scrolling ignores CSS scroll-padding: keep headings clear of
+    // the top bar on phones (the desktop rail is at the side).
+    inject(ViewportScroller).setOffset(() => [0, typeof window !== 'undefined' && window.innerWidth >= 1024 ? 24 : 72]);
   }
 }
